@@ -1,311 +1,511 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Header from '@/components/Header'
-import KPICards from '@/components/KPICards'
-import FilterPanel from '@/components/FilterPanel'
-import ChartsSection from '@/components/ChartsSection'
-import DataTable from '@/components/DataTable'
-import NotificationSystem from '@/components/NotificationSystem'
 import { 
-  PatientRecord, 
-  DashboardState, 
-  FilterState, 
-  TableState,
-  DashboardMetrics,
-  ChartConfig 
-} from '@/types'
-import { calculateMetrics, filterData } from '@/utils/dataHelpers'
-import { dataService } from '@/services/dataService'
-import { exportService } from '@/services/exportService'
+  Activity, 
+  DollarSign, 
+  FileText, 
+  Calculator, 
+  Building, 
+  Calendar, 
+  TrendingUp, 
+  Filter,
+  Search,
+  Download,
+  Moon,
+  Sun,
+  RefreshCw,
+  Bell,
+  Settings,
+  Users,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react'
 
-const initialFilters: FilterState = {
-  dateRange: {
-    start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0],
+// Mock data for immediate display
+const mockData = [
+  {
+    id: 1,
+    patientName: 'John Smith',
+    office: 'Downtown Dental',
+    insurance: 'Delta Dental',
+    amount: 850,
+    status: 'Paid',
+    type: 'Root Canal',
+    date: '2024-01-15',
+    email: 'john.smith@email.com'
   },
-  offices: [],
-  insuranceCarriers: [],
-  claimStatus: [],
-  interactionTypes: [],
-  searchQuery: '',
-  howProceeded: [],
-  escalatedTo: [],
-  missingDocs: [],
-}
+  {
+    id: 2,
+    patientName: 'Sarah Johnson',
+    office: 'Westside Family Dental',
+    insurance: 'BlueCross BlueShield',
+    amount: 450,
+    status: 'Pending',
+    type: 'Cleaning',
+    date: '2024-01-16',
+    email: 'sarah.j@email.com'
+  },
+  {
+    id: 3,
+    patientName: 'Michael Brown',
+    office: 'North Park Dental',
+    insurance: 'Aetna',
+    amount: 1200,
+    status: 'Paid',
+    type: 'Crown Placement',
+    date: '2024-01-17',
+    email: 'mbrown@email.com'
+  },
+  {
+    id: 4,
+    patientName: 'Emily Davis',
+    office: 'Downtown Dental',
+    insurance: 'Cigna',
+    amount: 0,
+    status: 'Denied',
+    type: 'Whitening',
+    date: '2024-01-18',
+    email: 'emily.davis@email.com'
+  },
+  {
+    id: 5,
+    patientName: 'Robert Wilson',
+    office: 'Eastside Dental',
+    insurance: 'MetLife',
+    amount: 650,
+    status: 'Paid',
+    type: 'Filling',
+    date: '2024-01-19',
+    email: 'rwilson@email.com'
+  }
+]
 
-const initialTableState: TableState = {
-  currentPage: 1,
-  itemsPerPage: 10,
-  sortBy: null,
-  sortDirection: 'asc',
-  searchQuery: '',
-}
+export default function DentalDashboard() {
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedOffice, setSelectedOffice] = useState('all')
+  const [selectedStatus, setSelectedStatus] = useState('all')
 
-const initialChartConfigs: Record<string, ChartConfig> = {
-  claimStatus: { type: 'doughnut', showLegend: true, showLabels: true, animated: true, responsive: true },
-  revenueByOffice: { type: 'bar', showLegend: false, showLabels: true, animated: true, responsive: true },
-  revenueByInsurer: { type: 'bar', showLegend: false, showLabels: true, animated: true, responsive: true },
-  monthlyTrends: { type: 'line', showLegend: true, showLabels: false, animated: true, responsive: true },
-  interactionTypes: { type: 'pie', showLegend: true, showLabels: true, animated: true, responsive: true },
-  averagePayment: { type: 'bar', showLegend: false, showLabels: true, animated: true, responsive: true },
-}
+  // Calculate metrics from mock data
+  const totalRevenue = mockData.reduce((sum, item) => sum + item.amount, 0)
+  const claimsProcessed = mockData.length
+  const averageClaim = totalRevenue / claimsProcessed
+  const paidClaims = mockData.filter(item => item.status === 'Paid').length
+  const pendingClaims = mockData.filter(item => item.status === 'Pending').length
+  const deniedClaims = mockData.filter(item => item.status === 'Denied').length
 
-export default function DashboardPage() {
-  const [dashboardState, setDashboardState] = useState<DashboardState>({
-    isLoading: true,
-    data: [],
-    filteredData: [],
-    metrics: {} as DashboardMetrics,
-    filters: initialFilters,
-    tableState: initialTableState,
-    chartConfigs: initialChartConfigs,
-    notifications: [],
-    theme: 'light',
-    sidebarOpen: false,
+  // Filter data based on search and filters
+  const filteredData = mockData.filter(item => {
+    const matchesSearch = item.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesOffice = selectedOffice === 'all' || item.office === selectedOffice
+    const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus
+    return matchesSearch && matchesOffice && matchesStatus
   })
 
-  // Load initial data
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  // Filter data when filters change
-  useEffect(() => {
-    const filtered = filterData(dashboardState.data, dashboardState.filters)
-    const metrics = calculateMetrics(filtered)
-    
-    setDashboardState(prev => ({
-      ...prev,
-      filteredData: filtered,
-      metrics,
-    }))
-  }, [dashboardState.data, dashboardState.filters])
-
-  const loadData = async () => {
-    setDashboardState(prev => ({ ...prev, isLoading: true }))
-
-    try {
-      const data = await dataService.fetchPatientRecords()
-      const filtered = filterData(data, dashboardState.filters)
-      const metrics = calculateMetrics(filtered)
-
-      setDashboardState(prev => ({
-        ...prev,
-        data,
-        filteredData: filtered,
-        metrics,
-        isLoading: false,
-      }))
-
-      addNotification({
-        type: 'success',
-        title: 'Data Loaded',
-        message: `Successfully loaded ${data.length} patient records`,
-      })
-    } catch (error) {
-      console.error('Error loading data:', error)
-      addNotification({
-        type: 'error',
-        title: 'Loading Error',
-        message: 'Failed to load patient data. Please check your connection.',
-      })
-
-      setDashboardState(prev => ({ ...prev, isLoading: false }))
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Paid': return 'bg-green-100 text-green-800 border-green-200'
+      case 'Pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'Denied': return 'bg-red-100 text-red-800 border-red-200'
+      default: return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
 
-  const addNotification = (notification: Omit<any, 'id' | 'timestamp'>) => {
-    const newNotification = {
-      ...notification,
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      autoClose: true,
-      duration: 5000,
-    }
-    
-    setDashboardState(prev => ({
-      ...prev,
-      notifications: [...prev.notifications, newNotification],
-    }))
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+    }).format(amount)
   }
-
-  const removeNotification = (id: string) => {
-    setDashboardState(prev => ({
-      ...prev,
-      notifications: prev.notifications.filter(n => n.id !== id),
-    }))
-  }
-
-  const updateFilters = (newFilters: Partial<FilterState>) => {
-    setDashboardState(prev => ({
-      ...prev,
-      filters: { ...prev.filters, ...newFilters },
-    }))
-  }
-
-  const clearFilters = () => {
-    setDashboardState(prev => ({
-      ...prev,
-      filters: initialFilters,
-    }))
-  }
-
-  const updateTableState = (newState: Partial<TableState>) => {
-    setDashboardState(prev => ({
-      ...prev,
-      tableState: { ...prev.tableState, ...newState },
-    }))
-  }
-
-  const updateChartConfig = (chartId: string, config: Partial<ChartConfig>) => {
-    setDashboardState(prev => ({
-      ...prev,
-      chartConfigs: {
-        ...prev.chartConfigs,
-        [chartId]: { ...prev.chartConfigs[chartId], ...config },
-      },
-    }))
-  }
-
-  const exportData = async (options: any) => {
-    try {
-      addNotification({
-        type: 'info',
-        title: 'Export Started',
-        message: `Exporting data in ${options.format} format...`,
-      })
-
-      switch (options.format) {
-        case 'excel':
-          await exportService.exportToExcel(dashboardState.filteredData, options, dashboardState.metrics)
-          break
-        case 'pdf':
-          await exportService.exportToPDF(dashboardState.filteredData, options, dashboardState.metrics)
-          break
-        case 'csv':
-          await exportService.exportToCSV(dashboardState.filteredData, options)
-          break
-        default:
-          throw new Error('Unsupported export format')
-      }
-
-      addNotification({
-        type: 'success',
-        title: 'Export Complete',
-        message: `Data exported successfully in ${options.format} format`,
-      })
-    } catch (error) {
-      console.error('Export error:', error)
-      addNotification({
-        type: 'error',
-        title: 'Export Failed',
-        message: `Failed to export data: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      })
-    }
-  }
-
-  const toggleTheme = () => {
-    const newTheme = dashboardState.theme === 'light' ? 'dark' : 'light'
-    setDashboardState(prev => ({ ...prev, theme: newTheme }))
-    document.documentElement.classList.toggle('dark', newTheme === 'dark')
-  }
-
-  const activeFiltersCount = Object.values(dashboardState.filters).reduce((count, filter) => {
-    if (Array.isArray(filter)) return count + filter.length
-    if (typeof filter === 'string' && filter) return count + 1
-    if (typeof filter === 'object' && filter !== null) {
-      const { start, end } = filter as { start: string; end: string }
-      if (start !== initialFilters.dateRange.start || end !== initialFilters.dateRange.end) {
-        return count + 1
-      }
-    }
-    return count
-  }, 0)
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${dashboardState.theme}`}>
-      <div className="flex flex-col h-screen">
-        {/* Header */}
-        <Header
-          title="Dental Analytics Dashboard"
-          metrics={dashboardState.metrics}
-          onRefresh={loadData}
-          onExport={() => exportData({ format: 'excel' })}
-          onThemeToggle={toggleTheme}
-          isLoading={dashboardState.isLoading}
-          theme={dashboardState.theme}
-        />
-
-        {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Sidebar Filters */}
-          <div className="w-80 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
-            <FilterPanel
-              filters={dashboardState.filters}
-              options={{
-                offices: [...new Set(dashboardState.data.map(d => d.offices))].map(office => ({
-                  value: office,
-                  label: office,
-                  count: dashboardState.data.filter(d => d.offices === office).length,
-                })),
-                insuranceCarriers: [...new Set(dashboardState.data.map(d => d.insurancecarrier))].map(carrier => ({
-                  value: carrier,
-                  label: carrier,
-                  count: dashboardState.data.filter(d => d.insurancecarrier === carrier).length,
-                })),
-                claimStatus: [...new Set(dashboardState.data.map(d => d.claimstatus))].map(status => ({
-                  value: status,
-                  label: status,
-                  count: dashboardState.data.filter(d => d.claimstatus === status).length,
-                })),
-                interactionTypes: [...new Set(dashboardState.data.map(d => d.typeofinteraction).filter(Boolean))].map(type => ({
-                  value: type as string,
-                  label: type as string,
-                  count: dashboardState.data.filter(d => d.typeofinteraction === type).length,
-                })),
-              }}
-              onFiltersChange={updateFilters}
-              onClearFilters={clearFilters}
-              activeFiltersCount={activeFiltersCount}
-            />
+    <div className={`min-h-screen ${isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+      {/* Header */}
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-4">
+          {/* Top Row */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <Activity className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Dental Analytics Dashboard
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Professional Dental Analytics Platform
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <Bell className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <RefreshCw className="w-5 h-5" />
+              </button>
+              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700">
+                <Download className="w-4 h-4" />
+                <span>Export</span>
+              </button>
+            </div>
           </div>
 
-          {/* Main Dashboard Content */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6 space-y-6">
-              {/* KPI Cards */}
-              <KPICards 
-                metrics={dashboardState.metrics}
-                isLoading={dashboardState.isLoading}
-              />
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm font-medium">Total Revenue</p>
+                  <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
+                </div>
+                <DollarSign className="w-8 h-8 text-blue-200" />
+              </div>
+              <div className="flex items-center mt-2 text-sm">
+                <TrendingUp className="w-4 h-4 mr-1" />
+                <span>+12.5% from last month</span>
+              </div>
+            </div>
 
-              {/* Charts Section */}
-              <ChartsSection
-                data={dashboardState.filteredData}
-                configs={dashboardState.chartConfigs}
-                onConfigChange={updateChartConfig}
-                isLoading={dashboardState.isLoading}
-              />
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm font-medium">Claims Processed</p>
+                  <p className="text-2xl font-bold">{claimsProcessed}</p>
+                </div>
+                <FileText className="w-8 h-8 text-green-200" />
+              </div>
+              <div className="flex items-center mt-2 text-sm">
+                <TrendingUp className="w-4 h-4 mr-1" />
+                <span>+8.2% from last week</span>
+              </div>
+            </div>
 
-              {/* Data Table */}
-              <DataTable
-                data={dashboardState.filteredData}
-                state={dashboardState.tableState}
-                onStateChange={updateTableState}
-                onExport={exportData}
-                isLoading={dashboardState.isLoading}
-              />
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm font-medium">Average Claim</p>
+                  <p className="text-2xl font-bold">{formatCurrency(averageClaim)}</p>
+                </div>
+                <Calculator className="w-8 h-8 text-purple-200" />
+              </div>
+              <div className="flex items-center mt-2 text-sm">
+                <TrendingUp className="w-4 h-4 mr-1" />
+                <span>+3.1% from last month</span>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm font-medium">Active Offices</p>
+                  <p className="text-2xl font-bold">4</p>
+                </div>
+                <Building className="w-8 h-8 text-orange-200" />
+              </div>
+              <div className="flex items-center mt-2 text-sm">
+                <span className="text-orange-100">All systems operational</span>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-pink-100 text-sm font-medium">Today's Claims</p>
+                  <p className="text-2xl font-bold">12</p>
+                </div>
+                <Calendar className="w-8 h-8 text-pink-200" />
+              </div>
+              <div className="flex items-center mt-2 text-sm">
+                <TrendingUp className="w-4 h-4 mr-1" />
+                <span>+15.3% vs yesterday</span>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-gray-600 to-gray-700 rounded-lg p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-200 text-sm font-medium">System Status</p>
+                  <p className="text-xl font-bold">Operational</p>
+                </div>
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-white rounded-full"></div>
+                </div>
+              </div>
+              <div className="flex items-center mt-2 text-sm">
+                <span className="text-gray-200">99.9% uptime</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Notification System */}
-      <NotificationSystem
-        notifications={dashboardState.notifications}
-        onRemove={removeNotification}
-      />
+      <div className="flex">
+        {/* Sidebar Filters */}
+        <div className="w-80 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 h-screen">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-2">
+              <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
+            </div>
+          </div>
+
+          <div className="p-4 space-y-6">
+            {/* Search */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Global Search
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search patients..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Office Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Office
+              </label>
+              <select
+                value={selectedOffice}
+                onChange={(e) => setSelectedOffice(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="all">All Offices</option>
+                <option value="Downtown Dental">Downtown Dental</option>
+                <option value="Westside Family Dental">Westside Family Dental</option>
+                <option value="North Park Dental">North Park Dental</option>
+                <option value="Eastside Dental">Eastside Dental</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Claim Status
+              </label>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="all">All Status</option>
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Denied">Denied</option>
+              </select>
+            </div>
+
+            {/* Status Summary */}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <h3 className="font-medium text-gray-900 dark:text-white mb-3">Claim Summary</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Paid Claims</span>
+                  <span className="font-medium text-green-600">{paidClaims}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Pending Claims</span>
+                  <span className="font-medium text-yellow-600">{pendingClaims}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Denied Claims</span>
+                  <span className="font-medium text-red-600">{deniedClaims}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-6 space-y-6">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                  <DollarSign className="w-6 h-6" />
+                </div>
+                <div className="text-sm font-medium text-green-600 flex items-center">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  +12.5%
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase">Total Revenue</h3>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{formatCurrency(totalRevenue)}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">All-time revenue</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-green-500 to-green-600 text-white">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div className="text-sm font-medium text-green-600 flex items-center">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  +8.2%
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase">Claims Processed</h3>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{claimsProcessed}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total claims handled</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+                  <Calculator className="w-6 h-6" />
+                </div>
+                <div className="text-sm font-medium text-green-600 flex items-center">
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  +3.1%
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase">Average Claim</h3>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{formatCurrency(averageClaim)}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Per claim average</p>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+                  <Building className="w-6 h-6" />
+                </div>
+                <div className="text-sm font-medium text-gray-600 flex items-center">
+                  0%
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase">Active Offices</h3>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">4</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Currently operational</p>
+            </div>
+          </div>
+
+          {/* Patient Records Table */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Patient Records</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {filteredData.length} of {mockData.length} records
+                  </p>
+                </div>
+                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700">
+                  <Download className="w-4 h-4" />
+                  <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-900">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Patient
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Office
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Insurance
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredData.map((record) => (
+                    <tr key={record.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {record.patientName}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {record.email}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {record.office}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {record.insurance}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {formatCurrency(record.amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(record.status)}`}>
+                          {record.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {record.type}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {new Date(record.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {filteredData.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-gray-500 dark:text-gray-400">
+                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">No records found</p>
+                  <p className="text-sm">Try adjusting your search or filters</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
