@@ -345,12 +345,16 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
                 {/* Chart Controls */}
                 <div className="flex items-center space-x-2">
                   <div className="relative">
-                    <button className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <button
+                      onClick={() => setActiveDropdown(activeDropdown === chart.id ? null : chart.id)}
+                      className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
                       <Plus className="w-4 h-4" />
                     </button>
-                    
+
                     {/* Dropdown Menu */}
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 hidden group-hover:block">
+                    {activeDropdown === chart.id && (
+                      <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
                       <div className="py-1">
                         <button
                           onClick={() => openConfiguration(chart)}
@@ -413,6 +417,7 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
                         </button>
                       </div>
                     </div>
+                    )}
                   </div>
                 </div>
               </div>
