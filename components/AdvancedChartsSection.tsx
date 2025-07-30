@@ -34,6 +34,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts'
+import ChartToolbar from './ChartToolbar'
 
 interface ChartConfig {
   id: string
