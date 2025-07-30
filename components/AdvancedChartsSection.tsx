@@ -35,6 +35,7 @@ import {
   ResponsiveContainer
 } from 'recharts'
 import ChartToolbar from './ChartToolbar'
+import ChartTemplates, { ChartTemplate } from './ChartTemplates'
 
 interface ChartConfig {
   id: string
