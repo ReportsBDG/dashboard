@@ -84,13 +84,12 @@ export default function DashboardPage() {
 
   const loadData = async () => {
     setDashboardState(prev => ({ ...prev, isLoading: true }))
-    
+
     try {
-      // TODO: Replace with actual Google Apps Script API call
-      const data = mockPatientData
+      const data = await dataService.fetchPatientRecords()
       const filtered = filterData(data, dashboardState.filters)
       const metrics = calculateMetrics(filtered)
-      
+
       setDashboardState(prev => ({
         ...prev,
         data,
@@ -98,7 +97,7 @@ export default function DashboardPage() {
         metrics,
         isLoading: false,
       }))
-      
+
       addNotification({
         type: 'success',
         title: 'Data Loaded',
@@ -109,9 +108,9 @@ export default function DashboardPage() {
       addNotification({
         type: 'error',
         title: 'Loading Error',
-        message: 'Failed to load patient data. Using demo data.',
+        message: 'Failed to load patient data. Please check your connection.',
       })
-      
+
       setDashboardState(prev => ({ ...prev, isLoading: false }))
     }
   }
