@@ -290,36 +290,24 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
   return (
     <div className="space-y-6">
       {/* Charts Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Advanced Analytics Charts
-          </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Create and customize dynamic charts with pivot-like functionality
-          </p>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          {/* Charts Filter Toggle */}
-          <button
-            onClick={() => setShowChartsFilter(!showChartsFilter)}
-            className="flex items-center space-x-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            <Filter className="w-4 h-4" />
-            <span className="text-sm">Show/Hide Charts</span>
-          </button>
-          
-          {/* Create Chart Button */}
-          <button
-            onClick={createNewChart}
-            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Chart</span>
-          </button>
-        </div>
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          Advanced Analytics Charts
+        </h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Create and customize dynamic charts with pivot-like functionality
+        </p>
       </div>
+
+      {/* Chart Toolbar */}
+      <ChartToolbar
+        onCreateChart={createNewChart}
+        onToggleChartsFilter={() => setShowChartsFilter(!showChartsFilter)}
+        onExportCharts={() => console.log('Export charts')}
+        onRefreshData={() => window.location.reload()}
+        chartsCount={charts.length}
+        visibleChartsCount={visibleCharts.length}
+      />
 
       {/* Charts Filter Panel */}
       {showChartsFilter && (
