@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react'
+import AdvancedChartsSection from '@/components/AdvancedChartsSection'
 
 // Mock data for immediate display
 const mockData = [
