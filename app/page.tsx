@@ -90,6 +90,12 @@ export default function DentalDashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedOffice, setSelectedOffice] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
+  const [isClient, setIsClient] = useState(false)
+
+  // Ensure consistent rendering between server and client
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Calculate metrics from mock data
   const totalRevenue = mockData.reduce((sum, item) => sum + item.amount, 0)
