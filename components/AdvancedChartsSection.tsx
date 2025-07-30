@@ -97,6 +97,7 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
   const [showConfigModal, setShowConfigModal] = useState(false)
   const [currentChart, setCurrentChart] = useState<ChartConfig | null>(null)
   const [showChartsFilter, setShowChartsFilter] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
 
   // Get available fields from data
   const availableFields = data.length > 0 ? Object.keys(data[0]) : []
