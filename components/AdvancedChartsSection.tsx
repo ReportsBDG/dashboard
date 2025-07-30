@@ -99,6 +99,7 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
   const [currentChart, setCurrentChart] = useState<ChartConfig | null>(null)
   const [showChartsFilter, setShowChartsFilter] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const [showTemplates, setShowTemplates] = useState(false)
 
   // Close dropdown when clicking outside
   useEffect(() => {
