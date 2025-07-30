@@ -168,13 +168,41 @@ export default function DashboardPage() {
     }))
   }
 
-  const exportData = (options: any) => {
-    // TODO: Implement export functionality
-    addNotification({
-      type: 'info',
-      title: 'Export Started',
-      message: `Exporting data in ${options.format} format...`,
-    })
+  const exportData = async (options: any) => {
+    try {
+      addNotification({
+        type: 'info',
+        title: 'Export Started',
+        message: `Exporting data in ${options.format} format...`,
+      })
+
+      switch (options.format) {
+        case 'excel':
+          await exportService.exportToExcel(dashboardState.filteredData, options, dashboardState.metrics)
+          break
+        case 'pdf':
+          await exportService.exportToPDF(dashboardState.filteredData, options, dashboardState.metrics)
+          break
+        case 'csv':
+          await exportService.exportToCSV(dashboardState.filteredData, options)
+          break
+        default:
+          throw new Error('Unsupported export format')
+      }
+
+      addNotification({
+        type: 'success',
+        title: 'Export Complete',
+        message: `Data exported successfully in ${options.format} format`,
+      })
+    } catch (error) {
+      console.error('Export error:', error)
+      addNotification({
+        type: 'error',
+        title: 'Export Failed',
+        message: `Failed to export data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      })
+    }
   }
 
   const toggleTheme = () => {
