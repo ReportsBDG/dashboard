@@ -15,8 +15,9 @@ import {
   DashboardMetrics,
   ChartConfig 
 } from '@/types'
-import { mockPatientData } from '@/utils/mockData'
 import { calculateMetrics, filterData } from '@/utils/dataHelpers'
+import { dataService } from '@/services/dataService'
+import { exportService } from '@/services/exportService'
 
 const initialFilters: FilterState = {
   dateRange: {
