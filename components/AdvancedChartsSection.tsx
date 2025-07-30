@@ -153,9 +153,30 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
   }
 
   const createNewChart = () => {
+    setShowTemplates(true)
+  }
+
+  const createChartFromTemplate = (template: ChartTemplate) => {
     const newChart: ChartConfig = {
       id: Date.now().toString(),
-      title: 'New Chart',
+      title: template.name,
+      type: template.type,
+      xAxis: template.xAxis,
+      yAxis: template.yAxis,
+      showLegend: true,
+      showGrid: true,
+      isVisible: true,
+      colors: [CHART_COLORS[charts.length % CHART_COLORS.length]],
+      aggregation: template.aggregation
+    }
+    setCharts([...charts, newChart])
+    setShowTemplates(false)
+  }
+
+  const createCustomChart = () => {
+    const newChart: ChartConfig = {
+      id: Date.now().toString(),
+      title: 'Custom Chart',
       type: 'bar',
       xAxis: categoricalFields[0] || '',
       yAxis: [numericFields[0] || ''],
@@ -168,6 +189,7 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
     setCharts([...charts, newChart])
     setCurrentChart(newChart)
     setShowConfigModal(true)
+    setShowTemplates(false)
   }
 
   const updateChart = (chartId: string, updates: Partial<ChartConfig>) => {
