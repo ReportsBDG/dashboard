@@ -434,6 +434,9 @@ export default function DentalDashboard() {
             </div>
           </div>
 
+          {/* Advanced Charts Section */}
+          <AdvancedChartsSection data={mockData} />
+
           {/* Patient Records Table */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
