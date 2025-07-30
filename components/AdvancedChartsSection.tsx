@@ -99,6 +99,13 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
   const [showChartsFilter, setShowChartsFilter] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setActiveDropdown(null)
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
+
   // Get available fields from data
   const availableFields = data.length > 0 ? Object.keys(data[0]) : []
   const numericFields = availableFields.filter(field => 
