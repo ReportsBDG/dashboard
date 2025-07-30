@@ -131,6 +131,18 @@ export default function DentalDashboard() {
     }).format(amount)
   }
 
+  const formatDate = (dateString) => {
+    if (!isClient) {
+      // Return consistent format for server-side rendering
+      return dateString
+    }
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
