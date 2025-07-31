@@ -127,31 +127,18 @@ export default function ChartConfigModal({ isOpen, onClose, onSave, currentChart
 
   useEffect(() => {
     if (currentChart) {
-      // Calculate fields inside useEffect to avoid dependency issues
-      const currentCategoricalFields = availableFields.filter(field => {
-        if (!data || data.length === 0) return false
-        const sampleValue = data[0][field]
-        return typeof sampleValue === 'string' || typeof sampleValue === 'boolean'
-      })
-
-      const currentNumericFields = availableFields.filter(field => {
-        if (!data || data.length === 0) return false
-        const sampleValue = data[0][field]
-        return typeof sampleValue === 'number'
-      })
-
       setConfig({
         title: currentChart.title || 'New Chart',
         type: currentChart.type || 'bar',
-        xAxis: currentChart.xAxis || currentCategoricalFields[0] || '',
-        yAxis: currentChart.yAxis || [currentNumericFields[0]] || [],
+        xAxis: currentChart.xAxis || categoricalFields[0] || '',
+        yAxis: currentChart.yAxis || [numericFields[0]] || [],
         aggregation: currentChart.aggregation || 'sum',
         showLegend: currentChart.showLegend !== undefined ? currentChart.showLegend : true,
         showGrid: currentChart.showGrid !== undefined ? currentChart.showGrid : true,
         colors: currentChart.colors || ['#0ea5e9']
       })
     }
-  }, [currentChart, data])
+  }, [currentChart, categoricalFields, numericFields])
 
   const handleSave = () => {
     onSave(config)
