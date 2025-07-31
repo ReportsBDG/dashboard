@@ -282,9 +282,18 @@ export default function SimpleCharts({ data }: { data: any[] }) {
           <li>• Click the <strong>blue + button</strong> on any chart to see all options</li>
           <li>• Change chart type, toggle legend, show/hide grid lines</li>
           <li>• Delete or hide charts as needed</li>
-          <li>• Use Configuration for advanced pivot table settings</li>
+          <li>• Use <strong>Configuration</strong> for advanced pivot table settings with variable selection</li>
         </ul>
       </div>
+
+      {/* Configuration Modal */}
+      <ChartConfigModal
+        isOpen={showConfigModal}
+        onClose={() => setShowConfigModal(false)}
+        onSave={saveConfiguration}
+        currentChart={currentChart}
+        data={data}
+      />
     </div>
   )
 }
