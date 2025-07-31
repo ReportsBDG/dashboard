@@ -17,6 +17,8 @@ import ChartConfigModal from './ChartConfigModal'
 
 export default function SimpleCharts({ data }: { data: any[] }) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+  const [showConfigModal, setShowConfigModal] = useState(false)
+  const [currentChart, setCurrentChart] = useState<any>(null)
   const [charts, setCharts] = useState([
     {
       id: '1',
