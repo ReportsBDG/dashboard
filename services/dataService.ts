@@ -1,8 +1,14 @@
 import { PatientRecord, APIResponse } from '@/types'
+<<<<<<< HEAD
 import { fetchFromGoogleScript, validatePatientData, GOOGLE_SCRIPT_CONFIG } from '@/lib/google-script'
 
 // Google Apps Script configuration
 const GOOGLE_APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_GOOGLE_APPS_SCRIPT_URL || GOOGLE_SCRIPT_CONFIG.url
+=======
+
+// Google Apps Script configuration
+const GOOGLE_APPS_SCRIPT_URL = process.env.NEXT_PUBLIC_GOOGLE_APPS_SCRIPT_URL || ''
+>>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
 const API_TIMEOUT = 30000 // 30 seconds
 
 // Custom error classes
@@ -192,6 +198,7 @@ export class DataService {
       }
     }
 
+<<<<<<< HEAD
     try {
       // Use the new Google Script integration
       const rawData = await fetchFromGoogleScript()
@@ -202,6 +209,25 @@ export class DataService {
 
       // Validate and transform the data
       const validatedRecords = rawData.map((record, index) => {
+=======
+    if (!GOOGLE_APPS_SCRIPT_URL) {
+      console.warn('Google Apps Script URL not configured, using mock data')
+      const { mockPatientData } = await import('@/utils/mockData')
+      return mockPatientData
+    }
+
+    try {
+      const response = await this.httpClient.request<any[]>(
+        `${GOOGLE_APPS_SCRIPT_URL}?action=getAllRecords`
+      )
+
+      if (!response.success) {
+        throw new DataServiceError(response.error || 'Failed to fetch data')
+      }
+
+      // Validate and transform the data
+      const validatedRecords = response.data.map((record, index) => {
+>>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
         try {
           return validatePatientRecord(record)
         } catch (error) {

@@ -481,3 +481,11 @@ export class ExportService {
 
 // Create and export singleton instance
 export const exportService = new ExportService()
+<<<<<<< HEAD
+=======
+
+// Export utility functions
+export {
+  ExportService
+}
+>>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
