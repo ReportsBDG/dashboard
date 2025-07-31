@@ -57,6 +57,20 @@ export default function SimpleCharts({ data }: { data: any[] }) {
     setActiveDropdown(null)
   }
 
+  const openConfiguration = (chart: any) => {
+    setCurrentChart(chart)
+    setShowConfigModal(true)
+    setActiveDropdown(null)
+  }
+
+  const saveConfiguration = (config: any) => {
+    if (currentChart) {
+      setCharts(charts.map(chart =>
+        chart.id === currentChart.id ? { ...chart, ...config } : chart
+      ))
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
