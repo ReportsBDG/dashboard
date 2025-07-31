@@ -377,10 +377,14 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
                 <div className="flex items-center space-x-2">
                   <div className="relative">
                     <button
-                      onClick={() => setActiveDropdown(activeDropdown === chart.id ? null : chart.id)}
-                      className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setActiveDropdown(activeDropdown === chart.id ? null : chart.id)
+                      }}
+                      className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-colors border-2 border-blue-700 hover:border-blue-800"
+                      title="Chart Options"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-5 h-5" />
                     </button>
 
                     {/* Dropdown Menu */}
