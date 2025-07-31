@@ -238,9 +238,14 @@ export default function SimpleCharts({ data }: { data: any[] }) {
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {chart.type.charAt(0).toUpperCase() + chart.type.slice(1)} Chart
                   </p>
-                  <div className="mt-3 flex items-center justify-center space-x-4 text-xs text-gray-500">
-                    <span>Legend: {chart.showLegend ? 'ON' : 'OFF'}</span>
-                    <span>Grid: {chart.showGrid ? 'ON' : 'OFF'}</span>
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
+                      <span>Legend: {chart.showLegend ? 'ON' : 'OFF'}</span>
+                      <span>Grid: {chart.showGrid ? 'ON' : 'OFF'}</span>
+                    </div>
+                    <div className="text-xs text-gray-400 text-center">
+                      X: {chart.xAxis || 'Not set'} | Y: {chart.yAxis?.join(', ') || 'Not set'} | Agg: {chart.aggregation || 'sum'}
+                    </div>
                   </div>
                 </div>
               </div>
