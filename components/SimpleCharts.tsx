@@ -13,6 +13,7 @@ import {
   Grid3x3,
   X
 } from 'lucide-react'
+import ChartConfigModal from './ChartConfigModal'
 
 export default function SimpleCharts({ data }: { data: any[] }) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
