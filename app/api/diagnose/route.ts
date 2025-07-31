@@ -6,9 +6,10 @@ export async function GET(request: NextRequest) {
   
   const baseUrl = "https://script.google.com/macros/s/AKfycbz-hSsHHk5lcYtRc_XLC20hV24XneVFSLbrm-MuYnaJYqWHJZ75JjU1E6GtCe6oF6yQ/exec"
   
+  let testName = 'Basic Test' // Declare testName at the top level
+  
   try {
     let url = baseUrl
-    let testName = 'Basic Test'
     
     switch (testType) {
       case 'withLimit':
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     return NextResponse.json({
-      test: testName || 'Unknown Test',
+      test: testName,
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
       url: baseUrl
