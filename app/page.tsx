@@ -330,7 +330,7 @@ export default function DentalDashboard() {
             </div>
           </div>
 
-          <div className="p-4 space-y-6">
+          <div className="p-4 space-y-4">
             {/* Search */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -344,6 +344,29 @@ export default function DentalDashboard() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Date Range Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Date Range
+              </label>
+              <div className="space-y-2">
+                <input
+                  type="date"
+                  value={dateRange.start}
+                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Start date"
+                />
+                <input
+                  type="date"
+                  value={dateRange.end}
+                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="End date"
                 />
               </div>
             </div>
@@ -368,7 +391,7 @@ export default function DentalDashboard() {
             {/* Status Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Claim Status
+                Status
               </label>
               <select
                 value={selectedStatus}
@@ -433,53 +456,31 @@ export default function DentalDashboard() {
               </select>
             </div>
 
-            {/* Date Range Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Date Range
-              </label>
-              <div className="flex space-x-2">
-                <input
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-                <span className="text-gray-500 dark:text-gray-400">to</span>
-                <input
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-            </div>
-
             {/* Status Summary */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900 dark:text-white mb-3">Filter Summary</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2 text-sm">Filter Summary</h3>
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs">
                   <span className="text-gray-600 dark:text-gray-400">Total Records</span>
                   <span className="font-medium text-blue-600">{data.length}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span className="text-gray-600 dark:text-gray-400">Filtered Records</span>
                   <span className="font-medium text-green-600">{filteredData.length}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Claim Status - Paid</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-600 dark:text-gray-400">Paid Claims</span>
                   <span className="font-medium text-green-600">{paidClaims}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Claim Status - Pending</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-600 dark:text-gray-400">Pending Claims</span>
                   <span className="font-medium text-yellow-600">{pendingClaims}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Claim Status - Denied</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-600 dark:text-gray-400">Denied Claims</span>
                   <span className="font-medium text-red-600">{deniedClaims}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span className="text-gray-600 dark:text-gray-400">Unique Offices</span>
                   <span className="font-medium text-purple-600">{uniqueOffices.length}</span>
                 </div>
