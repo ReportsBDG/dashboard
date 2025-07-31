@@ -26,70 +26,8 @@ import {
   ChevronRight
 } from 'lucide-react'
 import SimpleCharts from '@/components/SimpleCharts'
-<<<<<<< HEAD
 import { dataService } from '@/services/dataService'
 import { PatientRecord } from '@/types'
-=======
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
-
-// Mock data for immediate display
-const mockData = [
-  {
-    id: 1,
-    patientName: 'John Smith',
-    office: 'Downtown Dental',
-    insurance: 'Delta Dental',
-    amount: 850,
-    status: 'Paid',
-    type: 'Root Canal',
-    date: '2024-01-15',
-    email: 'john.smith@email.com'
-  },
-  {
-    id: 2,
-    patientName: 'Sarah Johnson',
-    office: 'Westside Family Dental',
-    insurance: 'BlueCross BlueShield',
-    amount: 450,
-    status: 'Pending',
-    type: 'Cleaning',
-    date: '2024-01-16',
-    email: 'sarah.j@email.com'
-  },
-  {
-    id: 3,
-    patientName: 'Michael Brown',
-    office: 'North Park Dental',
-    insurance: 'Aetna',
-    amount: 1200,
-    status: 'Paid',
-    type: 'Crown Placement',
-    date: '2024-01-17',
-    email: 'mbrown@email.com'
-  },
-  {
-    id: 4,
-    patientName: 'Emily Davis',
-    office: 'Downtown Dental',
-    insurance: 'Cigna',
-    amount: 0,
-    status: 'Denied',
-    type: 'Whitening',
-    date: '2024-01-18',
-    email: 'emily.davis@email.com'
-  },
-  {
-    id: 5,
-    patientName: 'Robert Wilson',
-    office: 'Eastside Dental',
-    insurance: 'MetLife',
-    amount: 650,
-    status: 'Paid',
-    type: 'Filling',
-    date: '2024-01-19',
-    email: 'rwilson@email.com'
-  }
-]
 
 export default function DentalDashboard() {
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -97,7 +35,6 @@ export default function DentalDashboard() {
   const [selectedOffice, setSelectedOffice] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [isClient, setIsClient] = useState(false)
-<<<<<<< HEAD
   const [data, setData] = useState<PatientRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -119,15 +56,12 @@ export default function DentalDashboard() {
 
     loadData()
   }, [])
-=======
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
 
   // Ensure consistent rendering between server and client
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-<<<<<<< HEAD
   // Calculate metrics from real data
   const totalRevenue = data.reduce((sum, item) => sum + item.paidamount, 0)
   const claimsProcessed = data.length
@@ -147,26 +81,6 @@ export default function DentalDashboard() {
 
   // Get color class based on claim status - Vercel Fix
   const getStatusColor = (status: string) => {
-=======
-  // Calculate metrics from mock data
-  const totalRevenue = mockData.reduce((sum, item) => sum + item.amount, 0)
-  const claimsProcessed = mockData.length
-  const averageClaim = totalRevenue / claimsProcessed
-  const paidClaims = mockData.filter(item => item.status === 'Paid').length
-  const pendingClaims = mockData.filter(item => item.status === 'Pending').length
-  const deniedClaims = mockData.filter(item => item.status === 'Denied').length
-
-  // Filter data based on search and filters
-  const filteredData = mockData.filter(item => {
-    const matchesSearch = item.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesOffice = selectedOffice === 'all' || item.office === selectedOffice
-    const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus
-    return matchesSearch && matchesOffice && matchesStatus
-  })
-
-  const getStatusColor = (status) => {
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
     switch (status) {
       case 'Paid': return 'bg-green-100 text-green-800 border-green-200'
       case 'Pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
@@ -175,11 +89,7 @@ export default function DentalDashboard() {
     }
   }
 
-<<<<<<< HEAD
   const formatCurrency = (amount: number) => {
-=======
-  const formatCurrency = (amount) => {
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -187,11 +97,7 @@ export default function DentalDashboard() {
     }).format(amount)
   }
 
-<<<<<<< HEAD
   const formatDate = (dateString: string) => {
-=======
-  const formatDate = (dateString) => {
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
     if (!isClient) {
       // Return consistent format for server-side rendering
       return dateString
@@ -203,7 +109,6 @@ export default function DentalDashboard() {
     })
   }
 
-<<<<<<< HEAD
   // Show loading state while data is being fetched
   if (loading) {
     return (
@@ -237,8 +142,6 @@ export default function DentalDashboard() {
     )
   }
 
-=======
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
   // Prevent hydration issues by showing loading state until client-side is ready
   if (!isClient) {
     return (
@@ -530,11 +433,7 @@ export default function DentalDashboard() {
           </div>
 
           {/* Interactive Charts Section */}
-<<<<<<< HEAD
           <SimpleCharts data={data} />
-=======
-          <SimpleCharts data={mockData} />
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
 
           {/* Patient Records Table */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
@@ -543,11 +442,7 @@ export default function DentalDashboard() {
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Patient Records</h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-<<<<<<< HEAD
                     {filteredData.length} of {data.length} records
-=======
-                    {filteredData.length} of {mockData.length} records
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
                   </p>
                 </div>
                 <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700">
@@ -588,7 +483,6 @@ export default function DentalDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-<<<<<<< HEAD
                   {filteredData.map((record, index) => (
                     <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -598,22 +492,10 @@ export default function DentalDashboard() {
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
                             {record.emailaddress || 'N/A'}
-=======
-                  {filteredData.map((record) => (
-                    <tr key={record.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {record.patientName}
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {record.email}
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-<<<<<<< HEAD
                         {record.offices}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -632,26 +514,6 @@ export default function DentalDashboard() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         {record.timestamp ? formatDate(record.timestamp) : 'N/A'}
-=======
-                        {record.office}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {record.insurance}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        {formatCurrency(record.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(record.status)}`}>
-                          {record.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {record.type}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {formatDate(record.date)}
->>>>>>> 62b5d4cbddc4597a480c0edc277708990f2decea
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
