@@ -26,7 +26,11 @@ export default function SimpleCharts({ data }: { data: any[] }) {
       type: 'bar',
       visible: true,
       showLegend: true,
-      showGrid: true
+      showGrid: true,
+      xAxis: 'office',
+      yAxis: ['amount'],
+      aggregation: 'sum',
+      colors: ['#0ea5e9']
     },
     {
       id: '2',
@@ -34,7 +38,11 @@ export default function SimpleCharts({ data }: { data: any[] }) {
       type: 'pie',
       visible: true,
       showLegend: true,
-      showGrid: false
+      showGrid: false,
+      xAxis: 'status',
+      yAxis: ['amount'],
+      aggregation: 'count',
+      colors: ['#10b981', '#f59e0b', '#ef4444']
     }
   ])
 
