@@ -178,6 +178,32 @@ export default function TestConnectionPage() {
     }
   }
 
+  const testDebugSheets = async () => {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+    
+    try {
+      console.log('Ejecutando debug completo de Google Sheets...')
+      const response = await fetch('/api/debug-sheets')
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      setResult({ 
+        type: 'Debug Google Sheets', 
+        data: data,
+        message: `Debug completado - ${data.summary.actualRecords} de ${data.summary.expectedRecords} registros`
+      })
+    } catch (err) {
+      setError(`Error debug: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
@@ -243,6 +269,14 @@ export default function TestConnectionPage() {
               className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
             >
               {loading ? 'Probando...' : '7. Test Datos Reales (fetchFromGoogleScript)'}
+            </button>
+
+            <button
+              onClick={testDebugSheets}
+              disabled={loading}
+              className="w-full bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50"
+            >
+              {loading ? 'Probando...' : '8. Test Debug de Google Sheets'}
             </button>
           </div>
         </div>
