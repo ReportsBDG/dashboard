@@ -117,6 +117,67 @@ export default function TestConnectionPage() {
     }
   }
 
+  const testAdvancedDiagnosis = async () => {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+    
+    try {
+      console.log('Ejecutando diagnóstico avanzado...')
+      
+      const tests = [
+        { name: 'Basic', url: '/api/diagnose?test=basic' },
+        { name: 'With Limit', url: '/api/diagnose?test=withLimit' },
+        { name: 'With Action', url: '/api/diagnose?test=withAction' },
+        { name: 'With Sheet', url: '/api/diagnose?test=withSheet' },
+        { name: 'Full Params', url: '/api/diagnose?test=fullParams' }
+      ]
+      
+      const results = []
+      
+      for (const test of tests) {
+        try {
+          const response = await fetch(test.url)
+          const data = await response.json()
+          results.push({ ...data, testName: test.name })
+        } catch (err) {
+          results.push({ 
+            testName: test.name, 
+            success: false, 
+            error: err instanceof Error ? err.message : 'Unknown error' 
+          })
+        }
+      }
+      
+      setResult({ type: 'Advanced Diagnosis', data: results })
+    } catch (err) {
+      setError(`Error diagnóstico: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const testRealDataConnection = async () => {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+    
+    try {
+      console.log('Probando conexión de datos reales...')
+      const data = await fetchFromGoogleScript()
+      setResult({ 
+        type: 'Real Data Connection', 
+        data: data.slice(0, 5), // Solo mostrar primeros 5 para preview
+        count: data.length,
+        message: `Obtenidos ${data.length} registros reales de Google Sheets`
+      })
+    } catch (err) {
+      setError(`Error datos reales: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
@@ -166,6 +227,22 @@ export default function TestConnectionPage() {
               className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50"
             >
               {loading ? 'Probando...' : '5. Test Información de la Hoja'}
+            </button>
+
+            <button
+              onClick={testAdvancedDiagnosis}
+              disabled={loading}
+              className="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 disabled:opacity-50"
+            >
+              {loading ? 'Probando...' : '6. Test Diagnóstico Avanzado'}
+            </button>
+
+            <button
+              onClick={testRealDataConnection}
+              disabled={loading}
+              className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {loading ? 'Probando...' : '7. Test Datos Reales (fetchFromGoogleScript)'}
             </button>
           </div>
         </div>

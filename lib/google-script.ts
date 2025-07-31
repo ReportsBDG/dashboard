@@ -4,7 +4,7 @@ export const GOOGLE_SCRIPT_CONFIG = {
   timeout: 10000,
   retries: 3,
   useProxy: true,
-  useFallbackData: true // Temporalmente habilitado para mostrar más datos
+  useFallbackData: false // Desactivado para forzar conexión real
 }
 
 // Tipos de respuesta esperados
@@ -180,6 +180,9 @@ export async function fetchFromGoogleScript(): Promise<any[]> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const fetchUrl = useProxy ? '/api/proxy' : url
+      
+      console.log(`Intento ${attempt}: Conectando a Google Sheets...`)
+      
       const response = await fetch(fetchUrl, {
         method: 'GET',
         headers: {
@@ -189,22 +192,29 @@ export async function fetchFromGoogleScript(): Promise<any[]> {
       })
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`)
       }
       
       const data = await response.json()
-      return processData(data.data || data)
+      console.log(`✅ Datos obtenidos: ${data.data?.length || data.length || 0} registros`)
+      
+      const processedData = processData(data.data || data)
+      console.log(`✅ Datos procesados: ${processedData.length} registros`)
+      
+      return processedData
       
     } catch (error) {
-      console.error(`Intento ${attempt} falló:`, error)
+      console.error(`❌ Intento ${attempt} falló:`, error)
       
       if (attempt === retries) {
-        console.log('Usando datos de respaldo debido a errores de conexión')
+        console.log('⚠️ Usando datos de respaldo debido a errores de conexión')
         return fullFallbackData
       }
       
-      // Esperar antes del siguiente intento
-      await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
+      // Esperar antes del siguiente intento (backoff exponencial)
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+      console.log(`⏳ Esperando ${delay}ms antes del siguiente intento...`)
+      await new Promise(resolve => setTimeout(resolve, delay))
     }
   }
   
