@@ -1,11 +1,12 @@
 // Patient and Claims Data Types
 export interface PatientRecord {
-  timestamp: string;
+  // Columnas principales
+  timestamp: string; // Columna AG - timestamp principal
   insurancecarrier: string;
-  offices: string;
+  offices: string; // Columna OFFICE
   patientname: string;
   paidamount: number;
-  claimstatus: string;
+  claimstatus: string; // Columna L - Claim Status
   typeofinteraction?: string;
   patientdob?: string;
   dos?: string; // Date of Service
@@ -14,9 +15,16 @@ export interface PatientRecord {
   howweproceeded?: string;
   escalatedto?: string;
   commentsreasons?: string;
-  emailaddress?: string;
-  status?: string;
+  emailaddress?: string; // Columna U - Emails
+  status?: string; // Columna Y - Status
   timestampbyinteraction?: string;
+  
+  // Nuevas columnas específicas
+  eftCheckIssuedDate?: string; // Columna AB - EFT/CHECK ISSUED DATE
+  office?: string; // Columna OFFICE (alias para offices)
+  claimStatus?: string; // Columna L (alias para claimstatus)
+  emails?: string; // Columna U (alias para emailaddress)
+  statusColumn?: string; // Columna Y (alias para status)
 }
 
 // Dashboard Metrics Types

@@ -34,6 +34,10 @@ export default function DentalDashboard() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedOffice, setSelectedOffice] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
+  const [selectedClaimStatus, setSelectedClaimStatus] = useState('all')
+  const [selectedEmail, setSelectedEmail] = useState('all')
+  const [selectedEftCheckDate, setSelectedEftCheckDate] = useState('all')
+  const [dateRange, setDateRange] = useState({ start: '', end: '' })
   const [isClient, setIsClient] = useState(false)
   const [data, setData] = useState<PatientRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -41,21 +45,22 @@ export default function DentalDashboard() {
 
   // Load data from Google Sheets
   useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true)
-        const patientData = await dataService.fetchPatientRecords()
-        setData(patientData)
-      } catch (err) {
-        setError('Error al cargar datos de Google Sheets')
-        console.error('Error loading data:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     loadData()
   }, [])
+
+  // Function to reload data
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const patientData = await dataService.fetchPatientRecords()
+      setData(patientData)
+    } catch (err) {
+      setError('Error al cargar datos de Google Sheets')
+      console.error('Error loading data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Ensure consistent rendering between server and client
   useEffect(() => {
@@ -72,12 +77,39 @@ export default function DentalDashboard() {
 
   // Filter data based on search and filters
   const filteredData = data.filter(item => {
+    // Search filter
     const matchesSearch = item.patientname.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (item.emailaddress && item.emailaddress.toLowerCase().includes(searchTerm.toLowerCase()))
+    
+    // Office filter (Column OFFICE)
     const matchesOffice = selectedOffice === 'all' || item.offices === selectedOffice
-    const matchesStatus = selectedStatus === 'all' || item.claimstatus === selectedStatus
-    return matchesSearch && matchesOffice && matchesStatus
+    
+    // Status filter (Column Y)
+    const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus
+    
+    // Claim Status filter (Column L)
+    const matchesClaimStatus = selectedClaimStatus === 'all' || item.claimstatus === selectedClaimStatus
+    
+    // Email filter (Column U)
+    const matchesEmail = selectedEmail === 'all' || item.emailaddress === selectedEmail
+    
+    // EFT/CHECK ISSUED DATE filter (Column AB)
+    const matchesEftCheckDate = selectedEftCheckDate === 'all' || item.eftCheckIssuedDate === selectedEftCheckDate
+    
+    // Date range filter (Column AG - timestamp)
+    const matchesDateRange = !dateRange.start || !dateRange.end || 
+      (item.timestamp >= dateRange.start && item.timestamp <= dateRange.end)
+    
+    return matchesSearch && matchesOffice && matchesStatus && matchesClaimStatus && 
+           matchesEmail && matchesEftCheckDate && matchesDateRange
   })
+
+  // Get unique values for filter options
+  const uniqueOffices = Array.from(new Set(data.map(item => item.offices).filter(Boolean)))
+  const uniqueStatuses = Array.from(new Set(data.map(item => item.status).filter(Boolean)))
+  const uniqueClaimStatuses = Array.from(new Set(data.map(item => item.claimstatus).filter(Boolean)))
+  const uniqueEmails = Array.from(new Set(data.map(item => item.emailaddress).filter(Boolean)))
+  const uniqueEftCheckDates = Array.from(new Set(data.map(item => item.eftCheckIssuedDate).filter(Boolean)))
 
   // Get color class based on claim status - Vercel Fix
   const getStatusColor = (status: string) => {
@@ -185,7 +217,11 @@ export default function DentalDashboard() {
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
-              <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <button 
+                onClick={loadData}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                title="Refresh Data"
+              >
                 <RefreshCw className="w-5 h-5" />
               </button>
               <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700">
@@ -323,10 +359,9 @@ export default function DentalDashboard() {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               >
                 <option value="all">All Offices</option>
-                <option value="Downtown Dental">Downtown Dental</option>
-                <option value="Westside Family Dental">Westside Family Dental</option>
-                <option value="North Park Dental">North Park Dental</option>
-                <option value="Eastside Dental">Eastside Dental</option>
+                {uniqueOffices.map(office => (
+                  <option key={office} value={office}>{office}</option>
+                ))}
               </select>
             </div>
 
@@ -341,27 +376,112 @@ export default function DentalDashboard() {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               >
                 <option value="all">All Status</option>
-                <option value="Paid">Paid</option>
-                <option value="Pending">Pending</option>
-                <option value="Denied">Denied</option>
+                {uniqueStatuses.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
               </select>
+            </div>
+
+            {/* Claim Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Claim Status
+              </label>
+              <select
+                value={selectedClaimStatus}
+                onChange={(e) => setSelectedClaimStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="all">All Claim Statuses</option>
+                {uniqueClaimStatuses.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Email Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Email Address
+              </label>
+              <select
+                value={selectedEmail}
+                onChange={(e) => setSelectedEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="all">All Email Addresses</option>
+                {uniqueEmails.map(email => (
+                  <option key={email} value={email}>{email}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* EFT/CHECK ISSUED DATE Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                EFT/Check Issued Date
+              </label>
+              <select
+                value={selectedEftCheckDate}
+                onChange={(e) => setSelectedEftCheckDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="all">All Dates</option>
+                {uniqueEftCheckDates.map(date => (
+                  <option key={date} value={date}>{date}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date Range Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Date Range
+              </label>
+              <div className="flex space-x-2">
+                <input
+                  type="date"
+                  value={dateRange.start}
+                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+                <span className="text-gray-500 dark:text-gray-400">to</span>
+                <input
+                  type="date"
+                  value={dateRange.end}
+                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
             </div>
 
             {/* Status Summary */}
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <h3 className="font-medium text-gray-900 dark:text-white mb-3">Claim Summary</h3>
+              <h3 className="font-medium text-gray-900 dark:text-white mb-3">Filter Summary</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Paid Claims</span>
+                  <span className="text-gray-600 dark:text-gray-400">Total Records</span>
+                  <span className="font-medium text-blue-600">{data.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Filtered Records</span>
+                  <span className="font-medium text-green-600">{filteredData.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Claim Status - Paid</span>
                   <span className="font-medium text-green-600">{paidClaims}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Pending Claims</span>
+                  <span className="text-gray-600 dark:text-gray-400">Claim Status - Pending</span>
                   <span className="font-medium text-yellow-600">{pendingClaims}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">Denied Claims</span>
+                  <span className="text-gray-600 dark:text-gray-400">Claim Status - Denied</span>
                   <span className="font-medium text-red-600">{deniedClaims}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Unique Offices</span>
+                  <span className="font-medium text-purple-600">{uniqueOffices.length}</span>
                 </div>
               </div>
             </div>
