@@ -92,27 +92,38 @@ export default function ChartConfigModal({ isOpen, onClose, onSave, currentChart
     colors: ['#0ea5e9']
   })
 
-  // Get available fields from data
-  const availableFields = data && data.length > 0 ? Object.keys(data[0]) : []
-  
-  // Categorize fields
-  const categoricalFields = availableFields.filter(field => {
-    if (!data || data.length === 0) return false
-    const sampleValue = data[0][field]
-    return typeof sampleValue === 'string' || typeof sampleValue === 'boolean'
-  })
+  // Memoize field calculations to prevent infinite loops
+  const availableFields = useMemo(() =>
+    data && data.length > 0 ? Object.keys(data[0]) : [],
+    [data]
+  )
 
-  const numericFields = availableFields.filter(field => {
-    if (!data || data.length === 0) return false
-    const sampleValue = data[0][field]
-    return typeof sampleValue === 'number'
-  })
+  const categoricalFields = useMemo(() =>
+    availableFields.filter(field => {
+      if (!data || data.length === 0) return false
+      const sampleValue = data[0][field]
+      return typeof sampleValue === 'string' || typeof sampleValue === 'boolean'
+    }),
+    [data, availableFields]
+  )
 
-  const dateFields = availableFields.filter(field => {
-    if (!data || data.length === 0) return false
-    const sampleValue = data[0][field]
-    return typeof sampleValue === 'string' && field.toLowerCase().includes('date')
-  })
+  const numericFields = useMemo(() =>
+    availableFields.filter(field => {
+      if (!data || data.length === 0) return false
+      const sampleValue = data[0][field]
+      return typeof sampleValue === 'number'
+    }),
+    [data, availableFields]
+  )
+
+  const dateFields = useMemo(() =>
+    availableFields.filter(field => {
+      if (!data || data.length === 0) return false
+      const sampleValue = data[0][field]
+      return typeof sampleValue === 'string' && field.toLowerCase().includes('date')
+    }),
+    [data, availableFields]
+  )
 
   useEffect(() => {
     if (currentChart) {
