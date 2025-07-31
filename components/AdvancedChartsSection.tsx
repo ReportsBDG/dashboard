@@ -394,12 +394,24 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
                         onClick={(e) => e.stopPropagation()}
                       >
                       <div className="py-2">
+                        <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                          <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Chart Actions
+                          </h4>
+                        </div>
+
                         <button
-                          onClick={() => openConfiguration(chart)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => {
+                            openConfiguration(chart)
+                            setActiveDropdown(null)
+                          }}
+                          className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         >
-                          <Settings className="w-4 h-4 mr-2" />
-                          Configuration
+                          <Settings className="w-5 h-5 mr-3 text-blue-500" />
+                          <div className="text-left">
+                            <div className="font-medium">Configuration</div>
+                            <div className="text-xs text-gray-500">Pivot table settings</div>
+                          </div>
                         </button>
                         
                         <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
