@@ -481,8 +481,3 @@ export class ExportService {
 
 // Create and export singleton instance
 export const exportService = new ExportService()
-
-// Export utility functions
-export {
-  ExportService
-}

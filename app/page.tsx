@@ -138,7 +138,7 @@ export default function DentalDashboard() {
     return matchesSearch && matchesOffice && matchesStatus
   })
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'Paid': return 'bg-green-100 text-green-800 border-green-200'
       case 'Pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
@@ -147,7 +147,7 @@ export default function DentalDashboard() {
     }
   }
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -155,7 +155,7 @@ export default function DentalDashboard() {
     }).format(amount)
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     if (!isClient) {
       // Return consistent format for server-side rendering
       return dateString

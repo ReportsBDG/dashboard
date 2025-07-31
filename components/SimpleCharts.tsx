@@ -264,7 +264,11 @@ export default function SimpleCharts({ data }: { data: any[] }) {
               type: 'bar',
               visible: true,
               showLegend: true,
-              showGrid: true
+              showGrid: true,
+              xAxis: '',
+              yAxis: [],
+              aggregation: 'sum',
+              colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
             }
             setCharts([...charts, newChart])
           }}
