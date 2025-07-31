@@ -138,6 +138,7 @@ export default function DentalDashboard() {
     return matchesSearch && matchesOffice && matchesStatus
   })
 
+  // Get color class based on claim status
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Paid': return 'bg-green-100 text-green-800 border-green-200'
