@@ -204,6 +204,32 @@ export default function TestConnectionPage() {
     }
   }
 
+  const checkScriptConfiguration = async () => {
+    setLoading(true)
+    setError(null)
+    setResult(null)
+    
+    try {
+      console.log('Verificando configuración del Google Apps Script...')
+      const response = await fetch('/api/check-script')
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      setResult({ 
+        type: 'Script Configuration Check', 
+        data: data,
+        message: `Análisis completado - ${data.analysis.totalRecords} registros (${data.analysis.percentageComplete}% del total esperado)`
+      })
+    } catch (err) {
+      setError(`Error verificación: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
@@ -277,6 +303,14 @@ export default function TestConnectionPage() {
               className="w-full bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50"
             >
               {loading ? 'Probando...' : '8. Test Debug de Google Sheets'}
+            </button>
+
+            <button
+              onClick={checkScriptConfiguration}
+              disabled={loading}
+              className="w-full bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 disabled:opacity-50"
+            >
+              {loading ? 'Verificando...' : '9. Verificar Configuración del Script'}
             </button>
           </div>
         </div>
