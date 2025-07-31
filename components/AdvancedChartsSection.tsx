@@ -389,8 +389,11 @@ export default function AdvancedChartsSection({ data }: AdvancedChartsSectionPro
 
                     {/* Dropdown Menu */}
                     {activeDropdown === chart.id && (
-                      <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20">
-                      <div className="py-1">
+                      <div
+                        className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl z-30 overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                      <div className="py-2">
                         <button
                           onClick={() => openConfiguration(chart)}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
