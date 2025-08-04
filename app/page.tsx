@@ -303,14 +303,14 @@ export default function DentalDashboard() {
       item.dos?.toLowerCase().includes(searchLower)
     )
     
-    // Other filters
-    const matchesOffice = selectedOffice === 'all' || item.offices === selectedOffice
-    const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus
-    const matchesClaimStatus = selectedClaimStatus === 'all' || item.claimstatus === selectedClaimStatus
-    const matchesCarrier = selectedCarrier === 'all' || item.insurancecarrier === selectedCarrier
+    // Multi-select filters
+    const matchesOffice = selectedOffices.length === 0 || selectedOffices.includes(item.offices || '')
+    const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(item.status || '')
+    const matchesClaimStatus = selectedClaimStatuses.length === 0 || selectedClaimStatuses.includes(item.claimstatus || '')
+    const matchesCarrier = selectedCarriers.length === 0 || selectedCarriers.includes(item.insurancecarrier || '')
 
-    // Type of Interaction filter (Column B)
-    const matchesInteractionType = selectedInteractionType === 'all' || item.typeofinteraction === selectedInteractionType
+    // Type of Interaction filter (Column B) - Multi-select
+    const matchesInteractionType = selectedInteractionTypes.length === 0 || selectedInteractionTypes.includes(item.typeofinteraction || '')
 
     // Date range filter using DOS (column G)
     const matchesDateRange = !dateRange.start || !dateRange.end || 
