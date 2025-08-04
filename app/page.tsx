@@ -565,7 +565,7 @@ export default function DentalDashboard() {
         {/* Collapsible Sidebar Filters */}
         <div
           className={`bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto transition-all duration-300 ease-in-out relative ${
-            isFiltersCollapsed ? 'w-16' : 'w-80'
+            isFiltersCollapsed ? 'w-0 opacity-0' : 'w-80'
           }`}
         >
           {/* Floating Toggle Button - Positioned relative to sidebar */}
