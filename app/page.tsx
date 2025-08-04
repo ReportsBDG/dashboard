@@ -308,7 +308,10 @@ export default function DentalDashboard() {
     const matchesStatus = selectedStatus === 'all' || item.status === selectedStatus
     const matchesClaimStatus = selectedClaimStatus === 'all' || item.claimstatus === selectedClaimStatus
     const matchesCarrier = selectedCarrier === 'all' || item.insurancecarrier === selectedCarrier
-    
+
+    // Type of Interaction filter (Column B)
+    const matchesInteractionType = selectedInteractionType === 'all' || item.typeofinteraction === selectedInteractionType
+
     // Date range filter using DOS (column G)
     const matchesDateRange = !dateRange.start || !dateRange.end || 
       (item.dos && item.dos >= dateRange.start && item.dos <= dateRange.end)
