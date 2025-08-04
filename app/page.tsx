@@ -22,7 +22,12 @@ import {
   CheckSquare,
   Square,
   X,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Columns,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 import SimpleCharts from '@/components/SimpleCharts'
 import { dataService } from '@/services/dataService'
@@ -35,6 +40,53 @@ interface Notification {
   type: 'success' | 'error' | 'warning' | 'info'
   message: string
   timestamp: Date
+}
+
+// Utility functions for timestamp handling
+const isToday = (dateString: string): boolean => {
+  if (!dateString) return false
+  try {
+    const date = new Date(dateString)
+    const today = new Date()
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear()
+  } catch {
+    return false
+  }
+}
+
+const isCurrentMonth = (dateString: string): boolean => {
+  if (!dateString) return false
+  try {
+    const date = new Date(dateString)
+    const now = new Date()
+    return date.getMonth() === now.getMonth() &&
+           date.getFullYear() === now.getFullYear()
+  } catch {
+    return false
+  }
+}
+
+// Load persistent state from localStorage
+const loadPersistedState = (key: string, defaultValue: any) => {
+  if (typeof window === 'undefined') return defaultValue
+  try {
+    const saved = localStorage.getItem(key)
+    return saved ? JSON.parse(saved) : defaultValue
+  } catch {
+    return defaultValue
+  }
+}
+
+// Save state to localStorage
+const savePersistedState = (key: string, value: any) => {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (error) {
+    console.error('Failed to save to localStorage:', error)
+  }
 }
 
 export default function DentalDashboard() {
@@ -51,24 +103,39 @@ export default function DentalDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [notifications, setNotifications] = useState<Notification[]>([])
   
-  // New states for enhanced table functionality
-  const [selectedColumns, setSelectedColumns] = useState({
-    patientName: true,
-    carrier: true,
-    offices: true,
-    dos: true,
-    claimStatus: true,
-    comments: true,
-    email: true,
-    patientPortion: true,
-    eftCheckDate: true,
-    status: true
-  })
+  // New states for enhanced functionality
+  const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(() => 
+    loadPersistedState('dentalDashboard.filtersCollapsed', false)
+  )
+  const [showColumnFilter, setShowColumnFilter] = useState(false)
+  const [selectedColumns, setSelectedColumns] = useState(() =>
+    loadPersistedState('dentalDashboard.selectedColumns', {
+      patientName: true,
+      carrier: true,
+      offices: true,
+      dos: true,
+      claimStatus: true,
+      comments: true,
+      email: true,
+      patientPortion: true,
+      eftCheckDate: true,
+      status: true
+    })
+  )
   
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(25)
   const [sortBy, setSortBy] = useState<keyof PatientRecord | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+
+  // Persist states to localStorage
+  useEffect(() => {
+    savePersistedState('dentalDashboard.filtersCollapsed', isFiltersCollapsed)
+  }, [isFiltersCollapsed])
+
+  useEffect(() => {
+    savePersistedState('dentalDashboard.selectedColumns', selectedColumns)
+  }, [selectedColumns])
 
   // Add notification function
   const addNotification = (type: Notification['type'], message: string) => {
@@ -140,7 +207,7 @@ export default function DentalDashboard() {
     setIsClient(true)
   }, [])
 
-  // Enhanced metrics calculation
+  // Enhanced metrics calculation with proper timestamp filtering
   const totalRevenue = data.reduce((sum, item) => sum + item.paidamount, 0)
   
   // Modified Claims Processed - only count 'complete' status from column AF (status field)
@@ -149,20 +216,16 @@ export default function DentalDashboard() {
     item.status?.toLowerCase() === 'completed'
   ).length
   
-  // Calculate monthly claims for current month
-  const currentMonth = new Date().getMonth()
-  const currentYear = new Date().getFullYear()
+  // Calculate monthly claims using timestamp from column AG (timestamp field)
   const monthlyClaims = data.filter(item => {
-    if (!item.timestamp) return false
-    const itemDate = new Date(item.timestamp)
-    return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear
+    // Use timestamp field (column AG) for filtering
+    return isCurrentMonth(item.timestamp)
   }).length
   
-  // Calculate today's claims
-  const today = new Date().toDateString()
+  // Calculate today's claims using timestamp from column AG (timestamp field)
   const todaysClaims = data.filter(item => {
-    if (!item.timestamp) return false
-    return new Date(item.timestamp).toDateString() === today
+    // Use timestamp field (column AG) for filtering
+    return isToday(item.timestamp)
   }).length
   
   const activeOffices = new Set(data.map(item => item.offices).filter(Boolean)).size
@@ -287,6 +350,11 @@ export default function DentalDashboard() {
       ...prev,
       [column]: !prev[column]
     }))
+  }
+
+  // Toggle filters sidebar
+  const toggleFilters = () => {
+    setIsFiltersCollapsed(!isFiltersCollapsed)
   }
 
   // Show loading state
@@ -460,7 +528,7 @@ export default function DentalDashboard() {
               </div>
             </div>
 
-            {/* Today's Claims */}
+            {/* Today's Claims - Fixed timestamp logic */}
             <div className="bg-gradient-to-r from-pink-500 to-pink-600 rounded-lg p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
@@ -471,11 +539,11 @@ export default function DentalDashboard() {
               </div>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 mr-1" />
-                <span>+15.3% vs yesterday</span>
+                <span>From column AG timestamps</span>
               </div>
             </div>
 
-            {/* Monthly Claims - New replacement for Average Claim */}
+            {/* Monthly Claims - Fixed timestamp logic */}
             <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
@@ -486,7 +554,7 @@ export default function DentalDashboard() {
               </div>
               <div className="flex items-center mt-2 text-sm">
                 <TrendingUp className="w-4 h-4 mr-1" />
-                <span>Current month total</span>
+                <span>Current month (Col AG)</span>
               </div>
             </div>
           </div>
@@ -494,171 +562,175 @@ export default function DentalDashboard() {
       </header>
 
       <div className="flex">
-        {/* Enhanced Sidebar Filters */}
-        <div className="w-80 bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto">
+        {/* Collapsible Sidebar Filters */}
+        <div 
+          className={`bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto transition-all duration-300 ease-in-out ${
+            isFiltersCollapsed ? 'w-16' : 'w-80'
+          }`}
+        >
+          {/* Toggle Button */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-2">
-              <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters & Search</h2>
+            <div className="flex items-center justify-between">
+              <div className={`flex items-center space-x-2 transition-opacity duration-300 ${isFiltersCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+                <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters & Search</h2>
+              </div>
+              <button
+                onClick={toggleFilters}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title={isFiltersCollapsed ? 'Expand Filters' : 'Collapse Filters'}
+              >
+                {isFiltersCollapsed ? (
+                  <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                ) : (
+                  <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                )}
+              </button>
             </div>
           </div>
 
-          <div className="p-4 space-y-4">
-            {/* Enhanced Global Search */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Global Search
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search patients, emails, carriers..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
+          {/* Filters Content */}
+          <div 
+            className={`transition-all duration-300 ease-in-out overflow-hidden ${
+              isFiltersCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
+            }`}
+          >
+            <div className="p-4 space-y-4">
+              {/* Enhanced Global Search */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Global Search
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search patients, emails, carriers..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                {searchTerm && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Found {filteredData.length} results
+                  </p>
+                )}
               </div>
-              {searchTerm && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Found {filteredData.length} results
-                </p>
-              )}
-            </div>
 
-            {/* Date Range Filter - Updated for DOS */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                DOS Date Range
-              </label>
-              <div className="space-y-2">
-                <input
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+              {/* Date Range Filter - Updated for DOS */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  DOS Date Range
+                </label>
+                <div className="space-y-2">
+                  <input
+                    type="date"
+                    value={dateRange.start}
+                    onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                  <input
+                    type="date"
+                    value={dateRange.end}
+                    onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Office Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Office
+                </label>
+                <select
+                  value={selectedOffice}
+                  onChange={(e) => setSelectedOffice(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-                <input
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                >
+                  <option value="all">All Offices</option>
+                  {uniqueOffices.map(office => (
+                    <option key={office} value={office}>{office}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Insurance Carrier Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Insurance Carrier
+                </label>
+                <select
+                  value={selectedCarrier}
+                  onChange={(e) => setSelectedCarrier(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
+                >
+                  <option value="all">All Carriers</option>
+                  {uniqueCarriers.map(carrier => (
+                    <option key={carrier} value={carrier}>{carrier}</option>
+                  ))}
+                </select>
               </div>
-            </div>
 
-            {/* Office Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Office
-              </label>
-              <select
-                value={selectedOffice}
-                onChange={(e) => setSelectedOffice(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="all">All Offices</option>
-                {uniqueOffices.map(office => (
-                  <option key={office} value={office}>{office}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Insurance Carrier Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Insurance Carrier
-              </label>
-              <select
-                value={selectedCarrier}
-                onChange={(e) => setSelectedCarrier(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="all">All Carriers</option>
-                {uniqueCarriers.map(carrier => (
-                  <option key={carrier} value={carrier}>{carrier}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Claim Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Claim Status
-              </label>
-              <select
-                value={selectedClaimStatus}
-                onChange={(e) => setSelectedClaimStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="all">All Claim Statuses</option>
-                {uniqueClaimStatuses.map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Processing Status
-              </label>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="all">All Statuses</option>
-                {uniqueStatuses.map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Column Visibility Controls */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Table Columns
-              </label>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {Object.entries(selectedColumns).map(([key, value]) => (
-                  <label key={key} className="flex items-center space-x-2 text-sm">
-                    <button
-                      onClick={() => toggleColumn(key as keyof typeof selectedColumns)}
-                      className="flex items-center"
-                    >
-                      {value ? 
-                        <CheckSquare className="w-4 h-4 text-blue-600" /> : 
-                        <Square className="w-4 h-4 text-gray-400" />
-                      }
-                    </button>
-                    <span className="text-gray-700 dark:text-gray-300 capitalize">
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                    </span>
-                  </label>
-                ))}
+              {/* Claim Status Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Claim Status
+                </label>
+                <select
+                  value={selectedClaimStatus}
+                  onChange={(e) => setSelectedClaimStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">All Claim Statuses</option>
+                  {uniqueClaimStatuses.map(status => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
               </div>
-            </div>
 
-            {/* Filter Summary */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-              <h3 className="font-medium text-gray-900 dark:text-white mb-2 text-sm">Summary</h3>
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-600 dark:text-gray-400">Total Records</span>
-                  <span className="font-medium text-blue-600">{data.length}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-600 dark:text-gray-400">Filtered Records</span>
-                  <span className="font-medium text-green-600">{filteredData.length}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-600 dark:text-gray-400">Complete Claims</span>
-                  <span className="font-medium text-green-600">{claimsProcessed}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-600 dark:text-gray-400">Monthly Claims</span>
-                  <span className="font-medium text-purple-600">{monthlyClaims}</span>
+              {/* Status Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Processing Status
+                </label>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">All Statuses</option>
+                  {uniqueStatuses.map(status => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filter Summary */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2 text-sm">Summary</h3>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Total Records</span>
+                    <span className="font-medium text-blue-600">{data.length}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Filtered Records</span>
+                    <span className="font-medium text-green-600">{filteredData.length}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Complete Claims</span>
+                    <span className="font-medium text-green-600">{claimsProcessed}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Today's Claims</span>
+                    <span className="font-medium text-pink-600">{todaysClaims}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Monthly Claims</span>
+                    <span className="font-medium text-purple-600">{monthlyClaims}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -681,6 +753,51 @@ export default function DentalDashboard() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
+                  {/* Column Filters Button */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowColumnFilter(!showColumnFilter)}
+                      className="bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-700 text-sm"
+                    >
+                      <Columns className="w-4 h-4" />
+                      <span>Columns</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showColumnFilter ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Column Filter Dropdown */}
+                    {showColumnFilter && (
+                      <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl z-50 p-4">
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Table Columns</h4>
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {Object.entries(selectedColumns).map(([key, value]) => (
+                            <label key={key} className="flex items-center space-x-2 text-sm cursor-pointer">
+                              <button
+                                onClick={() => toggleColumn(key as keyof typeof selectedColumns)}
+                                className="flex items-center"
+                              >
+                                {value ? 
+                                  <CheckSquare className="w-4 h-4 text-blue-600" /> : 
+                                  <Square className="w-4 h-4 text-gray-400" />
+                                }
+                              </button>
+                              <span className="text-gray-700 dark:text-gray-300 capitalize">
+                                {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                          <button
+                            onClick={() => setShowColumnFilter(false)}
+                            className="w-full bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
+                          >
+                            Apply Changes
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   <button 
                     onClick={handlePDFExport}
                     className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-red-700 text-sm"
@@ -704,7 +821,7 @@ export default function DentalDashboard() {
                     <tr>
                       {selectedColumns.patientName && (
                         <th 
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                           onClick={() => handleSort('patientname')}
                         >
                           Patient Name
@@ -715,7 +832,7 @@ export default function DentalDashboard() {
                       )}
                       {selectedColumns.carrier && (
                         <th 
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                           onClick={() => handleSort('insurancecarrier')}
                         >
                           Carrier
@@ -726,7 +843,7 @@ export default function DentalDashboard() {
                       )}
                       {selectedColumns.offices && (
                         <th 
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                           onClick={() => handleSort('offices')}
                         >
                           Office
@@ -737,7 +854,7 @@ export default function DentalDashboard() {
                       )}
                       {selectedColumns.dos && (
                         <th 
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                           onClick={() => handleSort('dos')}
                         >
                           DOS
@@ -763,7 +880,7 @@ export default function DentalDashboard() {
                       )}
                       {selectedColumns.patientPortion && (
                         <th 
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                           onClick={() => handleSort('paidamount')}
                         >
                           Patient Portion
@@ -782,80 +899,70 @@ export default function DentalDashboard() {
                           Status
                         </th>
                       )}
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Actions
-                      </th>
+                      {/* Actions column removed completely */}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {paginatedData.map((record, index) => (
-                      <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200">
                         {selectedColumns.patientName && (
-                          <td className="px-4 py-3 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap transition-all duration-200">
                             <div className="text-sm font-medium text-gray-900 dark:text-white">
                               {record.patientname}
                             </div>
                           </td>
                         )}
                         {selectedColumns.carrier && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white transition-all duration-200">
                             {record.insurancecarrier}
                           </td>
                         )}
                         {selectedColumns.offices && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white transition-all duration-200">
                             {record.offices}
                           </td>
                         )}
                         {selectedColumns.dos && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white transition-all duration-200">
                             {record.dos ? formatDate(record.dos) : 'N/A'}
                           </td>
                         )}
                         {selectedColumns.claimStatus && (
-                          <td className="px-4 py-3 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap transition-all duration-200">
                             <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(record.claimstatus)}`}>
                               {record.claimstatus}
                             </span>
                           </td>
                         )}
                         {selectedColumns.comments && (
-                          <td className="px-4 py-3 text-sm text-gray-900 dark:text-white max-w-xs">
+                          <td className="px-4 py-3 text-sm text-gray-900 dark:text-white max-w-xs transition-all duration-200">
                             <div className="truncate" title={record.commentsreasons}>
                               {record.commentsreasons || 'N/A'}
                             </div>
                           </td>
                         )}
                         {selectedColumns.email && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white transition-all duration-200">
                             {record.emailaddress || 'N/A'}
                           </td>
                         )}
                         {selectedColumns.patientPortion && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white transition-all duration-200">
                             {formatCurrency(record.paidamount)}
                           </td>
                         )}
                         {selectedColumns.eftCheckDate && (
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white transition-all duration-200">
                             {record.eftCheckIssuedDate ? formatDate(record.eftCheckIssuedDate) : 'N/A'}
                           </td>
                         )}
                         {selectedColumns.status && (
-                          <td className="px-4 py-3 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap transition-all duration-200">
                             <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(record.status)}`}>
                               {record.status || 'N/A'}
                             </span>
                           </td>
                         )}
-                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                          <button className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mr-2">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -874,14 +981,14 @@ export default function DentalDashboard() {
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       Previous
                     </button>
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+                      className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       Next
                     </button>
@@ -902,6 +1009,14 @@ export default function DentalDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Click outside to close column filter */}
+      {showColumnFilter && (
+        <div 
+          className="fixed inset-0 z-40"
+          onClick={() => setShowColumnFilter(false)}
+        ></div>
+      )}
     </div>
   )
 }
