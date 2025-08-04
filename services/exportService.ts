@@ -52,6 +52,205 @@ export class ExportService {
   }
 
   /**
+   * Export complete dashboard to PDF with all visual elements
+   */
+  async exportCompleteDashboardToPDF(options: {
+    data: PatientRecord[]
+    allData: PatientRecord[]
+    metrics: any
+    chartElements?: HTMLElement[]
+    kpiCardsElement?: HTMLElement
+    filters?: any
+    selectedColumns?: any
+    title: string
+  }): Promise<void> {
+    try {
+      const pdf = new jsPDF('l', 'mm', 'a4') // Landscape for more space
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const margin = 15
+      let currentY = margin
+
+      // Title and Header
+      pdf.setFontSize(24)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text(options.title, pageWidth / 2, currentY, { align: 'center' })
+      currentY += 15
+
+      // Subtitle with date and record count
+      pdf.setFontSize(12)
+      pdf.setFont('helvetica', 'normal')
+      const subtitle = `Generated: ${new Date().toLocaleString()} | Total Records: ${options.allData.length} | Filtered: ${options.data.length}`
+      pdf.text(subtitle, pageWidth / 2, currentY, { align: 'center' })
+      currentY += 20
+
+      // KPI Cards Section
+      pdf.setFontSize(16)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Key Performance Indicators', margin, currentY)
+      currentY += 10
+
+      // KPI Metrics in a grid
+      const kpiData = [
+        ['Total Revenue', this.formatCurrency(options.metrics.totalRevenue)],
+        ['Claims Processed', options.metrics.claimsProcessed.toString()],
+        ['Active Offices', options.metrics.activeOffices.toString()],
+        ['Today\'s Claims', options.metrics.todaysClaims.toString()],
+        ['Monthly Claims', options.metrics.monthlyClaims.toString()]
+      ]
+
+      const cardWidth = (pageWidth - 2 * margin) / 5
+      kpiData.forEach(([label, value], index) => {
+        const x = margin + (index * cardWidth)
+
+        // Card background
+        pdf.setFillColor(240, 248, 255) // Light blue
+        pdf.rect(x, currentY, cardWidth - 5, 25, 'F')
+
+        // Card border
+        pdf.setDrawColor(59, 130, 246) // Blue border
+        pdf.rect(x, currentY, cardWidth - 5, 25)
+
+        // Label
+        pdf.setFontSize(9)
+        pdf.setFont('helvetica', 'bold')
+        pdf.text(label, x + 2, currentY + 8)
+
+        // Value
+        pdf.setFontSize(12)
+        pdf.setFont('helvetica', 'bold')
+        pdf.text(value, x + 2, currentY + 18)
+      })
+      currentY += 35
+
+      // Charts Section
+      if (options.chartElements && options.chartElements.length > 0) {
+        pdf.setFontSize(16)
+        pdf.setFont('helvetica', 'bold')
+        pdf.text('Analytics Charts', margin, currentY)
+        currentY += 10
+
+        let chartsPerRow = 2
+        let chartIndex = 0
+
+        for (const chartElement of options.chartElements) {
+          if (currentY > pageHeight - 80) {
+            pdf.addPage()
+            currentY = margin
+          }
+
+          try {
+            const canvas = await html2canvas(chartElement, {
+              scale: 0.8,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+              logging: false
+            })
+
+            const imgData = canvas.toDataURL('image/png')
+            const chartWidth = (pageWidth - 3 * margin) / chartsPerRow
+            const chartHeight = (canvas.height * chartWidth) / canvas.width
+
+            const xPos = margin + (chartIndex % chartsPerRow) * (chartWidth + margin)
+
+            pdf.addImage(imgData, 'PNG', xPos, currentY, chartWidth, Math.min(chartHeight, 60))
+
+            chartIndex++
+            if (chartIndex % chartsPerRow === 0) {
+              currentY += Math.min(chartHeight, 60) + 10
+            }
+          } catch (error) {
+            console.error('Error adding chart to PDF:', error)
+          }
+        }
+
+        if (chartIndex % chartsPerRow !== 0) {
+          currentY += 70
+        }
+      }
+
+      // Patient Records Table
+      if (currentY > pageHeight - 100) {
+        pdf.addPage()
+        currentY = margin
+      }
+
+      pdf.setFontSize(16)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('Patient Records', margin, currentY)
+      currentY += 10
+
+      // Table headers
+      const tableColumns = ['Patient', 'Office', 'Carrier', 'DOS', 'Status', 'Amount']
+      const colWidth = (pageWidth - 2 * margin) / tableColumns.length
+
+      pdf.setFontSize(10)
+      pdf.setFont('helvetica', 'bold')
+
+      // Header background
+      pdf.setFillColor(249, 250, 251)
+      pdf.rect(margin, currentY, pageWidth - 2 * margin, 8, 'F')
+
+      tableColumns.forEach((header, index) => {
+        pdf.text(header, margin + (index * colWidth) + 2, currentY + 5)
+      })
+      currentY += 10
+
+      // Table data
+      pdf.setFont('helvetica', 'normal')
+      pdf.setFontSize(8)
+
+      const maxRows = Math.floor((pageHeight - currentY - margin) / 8)
+      const displayData = options.data.slice(0, maxRows)
+
+      displayData.forEach((record, rowIndex) => {
+        if (rowIndex % 2 === 0) {
+          pdf.setFillColor(248, 250, 252)
+          pdf.rect(margin, currentY, pageWidth - 2 * margin, 8, 'F')
+        }
+
+        const rowData = [
+          record.patientname || 'N/A',
+          record.offices || 'N/A',
+          record.insurancecarrier || 'N/A',
+          record.dos ? this.formatDate(record.dos) : 'N/A',
+          record.claimstatus || 'N/A',
+          this.formatCurrency(record.paidamount || 0)
+        ]
+
+        rowData.forEach((data, colIndex) => {
+          const text = data.toString()
+          const truncated = text.length > 20 ? text.substring(0, 17) + '...' : text
+          pdf.text(truncated, margin + (colIndex * colWidth) + 2, currentY + 5)
+        })
+        currentY += 8
+      })
+
+      // Footer with additional info
+      if (options.data.length > maxRows) {
+        currentY += 5
+        pdf.setFont('helvetica', 'italic')
+        pdf.text(`... and ${options.data.length - maxRows} more records`, margin, currentY)
+      }
+
+      // Add page numbers
+      const pageCount = pdf.getNumberOfPages()
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i)
+        pdf.setFontSize(8)
+        pdf.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 20, pageHeight - 10)
+      }
+
+      // Save the PDF
+      const filename = `complete-dental-dashboard-${new Date().toISOString().slice(0, 10)}.pdf`
+      pdf.save(filename)
+    } catch (error) {
+      console.error('Error exporting complete dashboard to PDF:', error)
+      throw new Error('Failed to export complete dashboard PDF')
+    }
+  }
+
+  /**
    * Export data to PDF format with enhanced functionality
    */
   async exportToPDF(
