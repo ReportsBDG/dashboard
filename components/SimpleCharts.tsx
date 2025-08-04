@@ -577,6 +577,48 @@ export default function SimpleCharts({ data }: ChartProps) {
         ))}
       </div>
 
+      {/* Hidden Charts Section */}
+      {charts.filter(chart => !chart.visible).length > 0 && (
+        <div className="space-y-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Hidden Charts ({charts.filter(chart => !chart.visible).length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {charts.filter(chart => !chart.visible).map((chart) => (
+                <div key={chart.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-900 dark:text-white">{chart.title}</h4>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => updateChart(chart.id, { visible: true })}
+                        className="p-1 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                        title="Show Chart"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteChart(chart.id)}
+                        className="p-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        title="Delete Chart"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <p>Type: {chart.type.charAt(0).toUpperCase() + chart.type.slice(1)}</p>
+                    <p>X-Axis: {chart.xAxis}</p>
+                    <p>Y-Axis: {chart.yAxis.join(', ')}</p>
+                    <p>Aggregation: {chart.aggregation}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create New Chart Button */}
       <div className="text-center">
         <button
