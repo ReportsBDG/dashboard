@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  Activity, 
-  DollarSign, 
-  FileText, 
+import {
+  Activity,
+  DollarSign,
+  FileText,
   Calendar,
-  Building, 
-  TrendingUp, 
+  Building,
+  TrendingUp,
   Filter,
   Search,
   Download,
@@ -27,7 +27,8 @@ import {
   ChevronRight,
   Columns,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Menu
 } from 'lucide-react'
 import SimpleCharts from '@/components/SimpleCharts'
 import { dataService } from '@/services/dataService'
