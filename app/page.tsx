@@ -341,14 +341,14 @@ export default function DentalDashboard() {
   const uniqueClaimStatuses = Array.from(new Set(data.map(item => item.claimstatus).filter(Boolean)))
   const uniqueCarriers = Array.from(new Set(data.map(item => item.insurancecarrier).filter(Boolean)))
 
-  // Complete Dashboard PDF Export functionality
+  // Complete Dashboard PDF Export functionality - TODOS LOS REGISTROS
   const handleCompleteDashboardPDFExport = async () => {
     try {
-      addNotification('info', 'Preparing complete dashboard PDF export...')
+      addNotification('info', `Preparing complete dashboard PDF export with ${filteredData.length} records...`)
 
       // Capture all visual elements
       const chartElements = document.querySelectorAll('.recharts-wrapper')
-      const kpiCards = document.querySelector('[data-loc*="grid-cols-2 lg:grid-cols-5"]')
+      const kpiCards = document.querySelector('#kpi-cards-section')
 
       // Prepare comprehensive data
       const dashboardMetrics = {
@@ -360,7 +360,7 @@ export default function DentalDashboard() {
       }
 
       await exportService.exportCompleteDashboardToPDF({
-        data: filteredData,
+        data: filteredData, // TODOS los datos filtrados, no solo los paginados
         allData: data,
         metrics: dashboardMetrics,
         chartElements: Array.from(chartElements) as HTMLElement[],
@@ -377,7 +377,9 @@ export default function DentalDashboard() {
         title: 'Complete Dental Analytics Dashboard Report'
       })
 
-      addNotification('success', 'Complete dashboard PDF exported successfully')
+      addNotification('success', `Complete dashboard PDF exported with ${filteredData.length} patient records`)
+      addRecentChange('data_sync', 'Complete dashboard exported to PDF',
+        `${filteredData.length} records included`)
     } catch (error) {
       addNotification('error', 'Failed to export complete dashboard PDF')
       console.error('Complete dashboard PDF export error:', error)
