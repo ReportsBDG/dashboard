@@ -438,10 +438,18 @@ export default function DentalDashboard() {
               {/* Hamburger Menu Button */}
               <button
                 onClick={toggleFilters}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
+                className={`p-2 rounded-lg transition-all duration-200 border ${
+                  isFiltersCollapsed
+                    ? 'hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-900/10'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600'
+                }`}
                 title={isFiltersCollapsed ? 'Mostrar Filtros' : 'Ocultar Filtros'}
               >
-                <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <Menu className={`w-5 h-5 transition-colors duration-200 ${
+                  isFiltersCollapsed
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`} />
               </button>
 
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
