@@ -174,30 +174,67 @@ export default function DentalDashboard() {
     return () => clearInterval(interval)
   }, [])
 
-  // Enhanced reload function
+  // Enhanced reload function with detailed change tracking
   const loadData = async (silent = false) => {
     try {
       if (!silent) {
         setLoading(true)
         setError(null)
       }
-      
+
       const patientData = await dataService.fetchPatientRecords()
-      
-      // Check for changes in data length for notifications
-      if (data.length > 0 && patientData.length !== data.length) {
-        const diff = patientData.length - data.length
-        if (diff > 0) {
-          addNotification('info', `${diff} new record(s) detected`)
-        } else if (diff < 0) {
-          addNotification('warning', `${Math.abs(diff)} record(s) removed`)
+
+      // Detailed change detection
+      if (data.length > 0) {
+        const oldRecords = new Map(data.map(record => [record.patientname + record.timestamp, record]))
+        const newRecords = new Map(patientData.map(record => [record.patientname + record.timestamp, record]))
+
+        // Detect new records
+        const addedRecords = patientData.filter(record =>
+          !oldRecords.has(record.patientname + record.timestamp)
+        )
+
+        // Detect removed records
+        const removedRecords = data.filter(record =>
+          !newRecords.has(record.patientname + record.timestamp)
+        )
+
+        // Detect modified records
+        const modifiedRecords = patientData.filter(record => {
+          const key = record.patientname + record.timestamp
+          const oldRecord = oldRecords.get(key)
+          return oldRecord && JSON.stringify(oldRecord) !== JSON.stringify(record)
+        })
+
+        // Add detailed notifications
+        if (addedRecords.length > 0) {
+          addNotification('info', `${addedRecords.length} new record(s) added`)
+          addRecentChange('new_record', `${addedRecords.length} new patient records added`,
+            `Latest: ${addedRecords[0]?.patientname || 'Unknown'}`)
+        }
+
+        if (removedRecords.length > 0) {
+          addNotification('warning', `${removedRecords.length} record(s) removed`)
+          addRecentChange('deleted_record', `${removedRecords.length} records removed from database`)
+        }
+
+        if (modifiedRecords.length > 0) {
+          addNotification('info', `${modifiedRecords.length} record(s) updated`)
+          addRecentChange('updated_record', `${modifiedRecords.length} patient records updated`,
+            `Latest: ${modifiedRecords[0]?.patientname || 'Unknown'}`)
+        }
+
+        if (addedRecords.length === 0 && removedRecords.length === 0 && modifiedRecords.length === 0 && silent) {
+          // No changes detected in silent refresh
         }
       }
-      
+
       setData(patientData)
-      
+
       if (!silent) {
         addNotification('success', 'Data refreshed successfully')
+        addRecentChange('data_sync', 'Database synchronized successfully',
+          `${patientData.length} total records`)
       }
     } catch (err) {
       const errorMessage = 'Error loading data from Google Sheets'
@@ -209,6 +246,18 @@ export default function DentalDashboard() {
         setLoading(false)
       }
     }
+  }
+
+  // Add recent change tracking
+  const addRecentChange = (type: 'new_record' | 'updated_record' | 'deleted_record' | 'data_sync', message: string, details?: string) => {
+    const change = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type,
+      message,
+      timestamp: new Date(),
+      details
+    }
+    setRecentChanges(prev => [change, ...prev].slice(0, 10)) // Keep last 10 changes
   }
 
   // Ensure consistent rendering between server and client
