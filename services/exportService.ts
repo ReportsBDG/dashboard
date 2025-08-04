@@ -52,11 +52,17 @@ export class ExportService {
   }
 
   /**
-   * Export data to PDF format
+   * Export data to PDF format with enhanced functionality
    */
   async exportToPDF(
     data: PatientRecord[],
-    options: ExportOptions,
+    options: {
+      title?: string
+      includeCharts?: boolean
+      filters?: any
+      dateRange?: { start: string; end: string }
+      selectedColumns?: string[]
+    },
     metrics?: DashboardMetrics,
     chartElements?: HTMLElement[]
   ): Promise<void> {
