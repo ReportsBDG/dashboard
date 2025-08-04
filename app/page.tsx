@@ -316,8 +316,8 @@ export default function DentalDashboard() {
     const matchesDateRange = !dateRange.start || !dateRange.end || 
       (item.dos && item.dos >= dateRange.start && item.dos <= dateRange.end)
     
-    return matchesSearch && matchesOffice && matchesStatus && 
-           matchesClaimStatus && matchesCarrier && matchesDateRange
+    return matchesSearch && matchesOffice && matchesStatus &&
+           matchesClaimStatus && matchesCarrier && matchesInteractionType && matchesDateRange
   })
 
   // Sorting functionality
@@ -1093,7 +1093,7 @@ export default function DentalDashboard() {
                         >
                           Carrier
                           {sortBy === 'insurancecarrier' && (
-                            <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                            <span className="ml-1">{sortDirection === 'asc' ? '���' : '↓'}</span>
                           )}
                         </th>
                       )}
@@ -1115,7 +1115,7 @@ export default function DentalDashboard() {
                         >
                           DOS
                           {sortBy === 'dos' && (
-                            <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                            <span className="ml-1">{sortDirection === 'asc' ? '↑' : '��'}</span>
                           )}
                         </th>
                       )}
