@@ -918,7 +918,7 @@ export default function DentalDashboard() {
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {paginatedData.map((record, index) => (
-                      <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200">
+                      <tr key={`${record.timestamp || 'no-timestamp'}-${record.patientname || 'no-name'}-${index}`} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200">
                         {selectedColumns.patientName && (
                           <td className="px-4 py-3 whitespace-nowrap transition-all duration-200">
                             <div className="text-sm font-medium text-gray-900 dark:text-white">
