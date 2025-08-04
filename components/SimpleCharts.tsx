@@ -13,13 +13,48 @@ import {
   Grid3x3,
   X
 } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  Area,
+  AreaChart
+} from 'recharts'
 import ChartConfigModal from './ChartConfigModal'
+import { PatientRecord } from '@/types'
 
-export default function SimpleCharts({ data }: { data: any[] }) {
+interface ChartProps {
+  data: PatientRecord[]
+}
+
+interface ChartConfig {
+  id: string
+  title: string
+  type: 'bar' | 'line' | 'pie' | 'area'
+  visible: boolean
+  showLegend: boolean
+  showGrid: boolean
+  xAxis: string
+  yAxis: string[]
+  aggregation: 'sum' | 'count' | 'average'
+  colors: string[]
+}
+
+export default function SimpleCharts({ data }: ChartProps) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [showConfigModal, setShowConfigModal] = useState(false)
-  const [currentChart, setCurrentChart] = useState<any>(null)
-  const [charts, setCharts] = useState([
+  const [currentChart, setCurrentChart] = useState<ChartConfig | null>(null)
+  const [charts, setCharts] = useState<ChartConfig[]>([
     {
       id: '1',
       title: 'Revenue by Office',
@@ -27,26 +62,335 @@ export default function SimpleCharts({ data }: { data: any[] }) {
       visible: true,
       showLegend: true,
       showGrid: true,
-      xAxis: 'office',
-      yAxis: ['amount'],
+      xAxis: 'offices',
+      yAxis: ['paidamount'],
       aggregation: 'sum',
-      colors: ['#0ea5e9']
+      colors: ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
     },
     {
       id: '2',
-      title: 'Claims Distribution',
+      title: 'Claims by Status',
       type: 'pie',
       visible: true,
       showLegend: true,
       showGrid: false,
-      xAxis: 'status',
-      yAxis: ['amount'],
+      xAxis: 'claimstatus',
+      yAxis: ['count'],
       aggregation: 'count',
-      colors: ['#10b981', '#f59e0b', '#ef4444']
+      colors: ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+    },
+    {
+      id: '3',
+      title: 'Monthly Revenue Trend',
+      type: 'line',
+      visible: true,
+      showLegend: true,
+      showGrid: true,
+      xAxis: 'month',
+      yAxis: ['paidamount'],
+      aggregation: 'sum',
+      colors: ['#6366f1', '#06b6d4']
+    },
+    {
+      id: '4',
+      title: 'Claims by Insurance Carrier',
+      type: 'area',
+      visible: true,
+      showLegend: true,
+      showGrid: true,
+      xAxis: 'insurancecarrier',
+      yAxis: ['paidamount'],
+      aggregation: 'sum',
+      colors: ['#8b5cf6', '#ec4899', '#f97316']
     }
   ])
 
-  const updateChart = (id: string, updates: any) => {
+  // Process data for charts
+  const processChartData = (chart: ChartConfig) => {
+    if (!data || data.length === 0) return []
+
+    const { xAxis, yAxis, aggregation } = chart
+
+    if (xAxis === 'month') {
+      // Special handling for monthly data
+      const monthlyData: Record<string, number> = {}
+      
+      data.forEach(record => {
+        if (record.dos || record.timestamp) {
+          const date = new Date(record.dos || record.timestamp)
+          const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+          
+          if (!monthlyData[monthKey]) {
+            monthlyData[monthKey] = 0
+          }
+          
+          if (aggregation === 'sum' && yAxis.includes('paidamount')) {
+            monthlyData[monthKey] += record.paidamount || 0
+          } else if (aggregation === 'count') {
+            monthlyData[monthKey] += 1
+          }
+        }
+      })
+
+      return Object.entries(monthlyData)
+        .map(([month, value]) => ({
+          name: month,
+          [yAxis[0] === 'count' ? 'count' : yAxis[0]]: value
+        }))
+        .sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime())
+    }
+
+    // Group by xAxis field
+    const grouped: Record<string, any> = {}
+    
+    data.forEach(record => {
+      const key = record[xAxis as keyof PatientRecord] || 'Unknown'
+      const keyStr = String(key)
+      
+      if (!grouped[keyStr]) {
+        grouped[keyStr] = {
+          name: keyStr,
+          count: 0,
+          paidamount: 0,
+          records: []
+        }
+      }
+      
+      grouped[keyStr].count += 1
+      grouped[keyStr].paidamount += record.paidamount || 0
+      grouped[keyStr].records.push(record)
+    })
+
+    // Convert to array and calculate aggregations
+    return Object.values(grouped).map(item => {
+      const result: any = { name: item.name }
+      
+      yAxis.forEach(field => {
+        if (field === 'count') {
+          result[field] = item.count
+        } else if (aggregation === 'sum') {
+          result[field] = item[field] || 0
+        } else if (aggregation === 'average') {
+          result[field] = item.count > 0 ? (item[field] || 0) / item.count : 0
+        } else if (aggregation === 'count') {
+          result[field] = item.count
+        }
+      })
+      
+      return result
+    }).sort((a, b) => {
+      // Sort by value for better visualization
+      const aValue = a[yAxis[0]] || 0
+      const bValue = b[yAxis[0]] || 0
+      return bValue - aValue
+    }).slice(0, 10) // Limit to top 10 items for readability
+  }
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
+
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat('en-US').format(value)
+  }
+
+  const renderChart = (chart: ChartConfig) => {
+    const chartData = processChartData(chart)
+    
+    if (chartData.length === 0) {
+      return (
+        <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="text-center text-gray-500 dark:text-gray-400">
+            <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <p>No data available</p>
+          </div>
+        </div>
+      )
+    }
+
+    const formatTooltipValue = (value: any, name: string) => {
+      if (name === 'paidamount') {
+        return [formatCurrency(Number(value)), 'Revenue']
+      }
+      if (name === 'count') {
+        return [formatNumber(Number(value)), 'Count']
+      }
+      return [formatNumber(Number(value)), name]
+    }
+
+    switch (chart.type) {
+      case 'bar':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              {chart.showGrid && <CartesianGrid strokeDasharray="3 3" />}
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => {
+                  if (chart.yAxis.includes('paidamount')) {
+                    return formatCurrency(value)
+                  }
+                  return formatNumber(value)
+                }}
+              />
+              <Tooltip 
+                formatter={formatTooltipValue}
+                contentStyle={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #ccc',
+                  borderRadius: '8px'
+                }}
+              />
+              {chart.showLegend && <Legend />}
+              {chart.yAxis.map((field, index) => (
+                <Bar 
+                  key={field}
+                  dataKey={field} 
+                  fill={chart.colors[index % chart.colors.length]}
+                  radius={[4, 4, 0, 0]}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        )
+
+      case 'line':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              {chart.showGrid && <CartesianGrid strokeDasharray="3 3" />}
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => {
+                  if (chart.yAxis.includes('paidamount')) {
+                    return formatCurrency(value)
+                  }
+                  return formatNumber(value)
+                }}
+              />
+              <Tooltip 
+                formatter={formatTooltipValue}
+                contentStyle={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #ccc',
+                  borderRadius: '8px'
+                }}
+              />
+              {chart.showLegend && <Legend />}
+              {chart.yAxis.map((field, index) => (
+                <Line 
+                  key={field}
+                  type="monotone"
+                  dataKey={field}
+                  stroke={chart.colors[index % chart.colors.length]}
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        )
+
+      case 'area':
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              {chart.showGrid && <CartesianGrid strokeDasharray="3 3" />}
+              <XAxis 
+                dataKey="name" 
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => {
+                  if (chart.yAxis.includes('paidamount')) {
+                    return formatCurrency(value)
+                  }
+                  return formatNumber(value)
+                }}
+              />
+              <Tooltip 
+                formatter={formatTooltipValue}
+                contentStyle={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #ccc',
+                  borderRadius: '8px'
+                }}
+              />
+              {chart.showLegend && <Legend />}
+              {chart.yAxis.map((field, index) => (
+                <Area 
+                  key={field}
+                  type="monotone"
+                  dataKey={field}
+                  stackId="1"
+                  stroke={chart.colors[index % chart.colors.length]}
+                  fill={chart.colors[index % chart.colors.length]}
+                  fillOpacity={0.6}
+                />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+        )
+
+      case 'pie':
+        const pieData = chartData.slice(0, 8) // Limit pie chart to 8 slices for readability
+        return (
+          <ResponsiveContainer width="100%" height={300}>
+            <RechartsPieChart>
+              <Tooltip 
+                formatter={formatTooltipValue}
+                contentStyle={{
+                  backgroundColor: '#fff',
+                  border: '1px solid #ccc',
+                  borderRadius: '8px'
+                }}
+              />
+              {chart.showLegend && <Legend />}
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey={chart.yAxis[0]}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
+                {pieData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={chart.colors[index % chart.colors.length]}
+                  />
+                ))}
+              </Pie>
+            </RechartsPieChart>
+          </ResponsiveContainer>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  const updateChart = (id: string, updates: Partial<ChartConfig>) => {
     setCharts(charts.map(chart => 
       chart.id === id ? { ...chart, ...updates } : chart
     ))
@@ -57,13 +401,13 @@ export default function SimpleCharts({ data }: { data: any[] }) {
     setActiveDropdown(null)
   }
 
-  const openConfiguration = (chart: any) => {
+  const openConfiguration = (chart: ChartConfig) => {
     setCurrentChart(chart)
     setShowConfigModal(true)
     setActiveDropdown(null)
   }
 
-  const saveConfiguration = (config: any) => {
+  const saveConfiguration = (config: Partial<ChartConfig>) => {
     if (currentChart) {
       setCharts(charts.map(chart =>
         chart.id === currentChart.id ? { ...chart, ...config } : chart
@@ -75,10 +419,10 @@ export default function SimpleCharts({ data }: { data: any[] }) {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-          Interactive Charts
+          Analytics Dashboard
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Click the + button on each chart to see all options
+          Interactive charts with real data from your dental practice ({data.length} records)
         </p>
       </div>
 
@@ -125,15 +469,16 @@ export default function SimpleCharts({ data }: { data: any[] }) {
                           <h5 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
                             1. Chart Type
                           </h5>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-4 gap-2">
                             {[
                               { type: 'bar', icon: BarChart3, label: 'Bar' },
                               { type: 'line', icon: LineIcon, label: 'Line' },
-                              { type: 'pie', icon: PieChart, label: 'Pie' }
+                              { type: 'pie', icon: PieChart, label: 'Pie' },
+                              { type: 'area', icon: BarChart3, label: 'Area' }
                             ].map(({ type, icon: Icon, label }) => (
                               <button
                                 key={type}
-                                onClick={() => updateChart(chart.id, { type })}
+                                onClick={() => updateChart(chart.id, { type: type as ChartConfig['type'] })}
                                 className={`p-2 rounded-lg border-2 transition-all ${
                                   chart.type === type
                                     ? 'bg-blue-100 border-blue-500 text-blue-700 dark:bg-blue-800 dark:text-blue-200'
@@ -214,7 +559,7 @@ export default function SimpleCharts({ data }: { data: any[] }) {
                           <Settings className="w-5 h-5 mr-3 text-blue-500" />
                           <div className="text-left">
                             <div className="font-medium text-gray-900 dark:text-white">6. Configuration</div>
-                            <div className="text-xs text-gray-500">Pivot table settings & variables</div>
+                            <div className="text-xs text-gray-500">Advanced chart settings</div>
                           </div>
                         </button>
                       </div>
@@ -226,47 +571,67 @@ export default function SimpleCharts({ data }: { data: any[] }) {
 
             {/* Chart Content */}
             <div className="p-6">
-              <div className="h-64 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300 dark:border-blue-600">
-                <div className="text-center">
-                  {chart.type === 'bar' && <BarChart3 className="w-16 h-16 text-blue-500 mx-auto mb-2" />}
-                  {chart.type === 'line' && <LineIcon className="w-16 h-16 text-blue-500 mx-auto mb-2" />}
-                  {chart.type === 'pie' && <PieChart className="w-16 h-16 text-blue-500 mx-auto mb-2" />}
-                  
-                  <h4 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    {chart.title}
-                  </h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {chart.type.charAt(0).toUpperCase() + chart.type.slice(1)} Chart
-                  </p>
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
-                      <span>Legend: {chart.showLegend ? 'ON' : 'OFF'}</span>
-                      <span>Grid: {chart.showGrid ? 'ON' : 'OFF'}</span>
-                    </div>
-                    <div className="text-xs text-gray-400 text-center">
-                      X: {chart.xAxis || 'Not set'} | Y: {chart.yAxis?.join(', ') || 'Not set'} | Agg: {chart.aggregation || 'sum'}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {renderChart(chart)}
             </div>
           </div>
         ))}
       </div>
 
+      {/* Hidden Charts Section */}
+      {charts.filter(chart => !chart.visible).length > 0 && (
+        <div className="space-y-4">
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Hidden Charts ({charts.filter(chart => !chart.visible).length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {charts.filter(chart => !chart.visible).map((chart) => (
+                <div key={chart.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-900 dark:text-white">{chart.title}</h4>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => updateChart(chart.id, { visible: true })}
+                        className="p-1 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                        title="Show Chart"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteChart(chart.id)}
+                        className="p-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        title="Delete Chart"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <p>Type: {chart.type.charAt(0).toUpperCase() + chart.type.slice(1)}</p>
+                    <p>X-Axis: {chart.xAxis}</p>
+                    <p>Y-Axis: {chart.yAxis.join(', ')}</p>
+                    <p>Aggregation: {chart.aggregation}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create New Chart Button */}
       <div className="text-center">
         <button
           onClick={() => {
-            const newChart = {
+            const newChart: ChartConfig = {
               id: Date.now().toString(),
               title: `New Chart ${charts.length + 1}`,
               type: 'bar',
               visible: true,
               showLegend: true,
               showGrid: true,
-              xAxis: '',
-              yAxis: [],
+              xAxis: 'offices',
+              yAxis: ['paidamount'],
               aggregation: 'sum',
               colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
             }
@@ -284,9 +649,10 @@ export default function SimpleCharts({ data }: { data: any[] }) {
         <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How to Use:</h3>
         <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
           <li>• Click the <strong>blue + button</strong> on any chart to see all options</li>
-          <li>• Change chart type, toggle legend, show/hide grid lines</li>
-          <li>• Delete or hide charts as needed</li>
-          <li>• Use <strong>Configuration</strong> for advanced pivot table settings with variable selection</li>
+          <li>• Change chart type between Bar, Line, Pie, and Area charts</li>
+          <li>• Toggle legend and grid lines for better visualization</li>
+          <li>• Charts automatically update with real data from {data.length} patient records</li>
+          <li>• Use <strong>Configuration</strong> for advanced settings</li>
         </ul>
       </div>
 

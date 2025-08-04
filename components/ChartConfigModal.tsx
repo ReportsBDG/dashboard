@@ -20,6 +20,23 @@ import {
   User,
   Mail
 } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  Area,
+  AreaChart
+} from 'recharts'
 
 interface ChartConfigModalProps {
   isOpen: boolean
@@ -171,6 +188,194 @@ export default function ChartConfigModal({ isOpen, onClose, onSave, currentChart
       ...prev,
       yAxis: prev.yAxis.filter(f => f !== field)
     }))
+  }
+
+  // Process data for live preview
+  const processPreviewData = () => {
+    if (!data || data.length === 0 || !config.xAxis || config.yAxis.length === 0) return []
+
+    const grouped: Record<string, any> = {}
+
+    data.forEach(record => {
+      const key = record[config.xAxis] || 'Unknown'
+      const keyStr = String(key)
+
+      if (!grouped[keyStr]) {
+        grouped[keyStr] = {
+          name: keyStr,
+          count: 0,
+          records: []
+        }
+        config.yAxis.forEach(field => {
+          grouped[keyStr][field] = 0
+        })
+      }
+
+      grouped[keyStr].count += 1
+      grouped[keyStr].records.push(record)
+
+      config.yAxis.forEach(field => {
+        const value = record[field] || 0
+        if (config.aggregation === 'sum') {
+          grouped[keyStr][field] += Number(value) || 0
+        } else if (config.aggregation === 'count') {
+          grouped[keyStr][field] = grouped[keyStr].count
+        } else if (config.aggregation === 'avg') {
+          grouped[keyStr][field] = (grouped[keyStr][field] * (grouped[keyStr].count - 1) + (Number(value) || 0)) / grouped[keyStr].count
+        } else if (config.aggregation === 'max') {
+          grouped[keyStr][field] = Math.max(grouped[keyStr][field], Number(value) || 0)
+        } else if (config.aggregation === 'min') {
+          grouped[keyStr][field] = grouped[keyStr].count === 1 ? (Number(value) || 0) : Math.min(grouped[keyStr][field], Number(value) || 0)
+        }
+      })
+    })
+
+    return Object.values(grouped).slice(0, 8) // Limit for preview
+  }
+
+  const previewData = processPreviewData()
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
+
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat('en-US').format(value)
+  }
+
+  const formatTooltipValue = (value: any, name: string) => {
+    if (name === 'paidamount' || name.toLowerCase().includes('amount')) {
+      return [formatCurrency(Number(value)), name]
+    }
+    return [formatNumber(Number(value)), name]
+  }
+
+  const renderLivePreview = () => {
+    if (previewData.length === 0) {
+      return (
+        <div className="h-48 bg-white dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+          <div className="text-center">
+            <Database className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">Configure axes to see preview</p>
+          </div>
+        </div>
+      )
+    }
+
+    switch (config.type) {
+      case 'bar':
+        return (
+          <div className="h-48 bg-white dark:bg-gray-800 rounded-lg p-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={previewData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                {config.showGrid && <CartesianGrid strokeDasharray="3 3" />}
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip formatter={formatTooltipValue} />
+                {config.showLegend && <Legend />}
+                {config.yAxis.map((field, index) => (
+                  <Bar
+                    key={field}
+                    dataKey={field}
+                    fill={config.colors[index % config.colors.length]}
+                    radius={[2, 2, 0, 0]}
+                  />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )
+
+      case 'line':
+        return (
+          <div className="h-48 bg-white dark:bg-gray-800 rounded-lg p-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={previewData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                {config.showGrid && <CartesianGrid strokeDasharray="3 3" />}
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip formatter={formatTooltipValue} />
+                {config.showLegend && <Legend />}
+                {config.yAxis.map((field, index) => (
+                  <Line
+                    key={field}
+                    type="monotone"
+                    dataKey={field}
+                    stroke={config.colors[index % config.colors.length]}
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )
+
+      case 'area':
+        return (
+          <div className="h-48 bg-white dark:bg-gray-800 rounded-lg p-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={previewData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                {config.showGrid && <CartesianGrid strokeDasharray="3 3" />}
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} />
+                <Tooltip formatter={formatTooltipValue} />
+                {config.showLegend && <Legend />}
+                {config.yAxis.map((field, index) => (
+                  <Area
+                    key={field}
+                    type="monotone"
+                    dataKey={field}
+                    stackId="1"
+                    stroke={config.colors[index % config.colors.length]}
+                    fill={config.colors[index % config.colors.length]}
+                    fillOpacity={0.6}
+                  />
+                ))}
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )
+
+      case 'pie':
+        const pieData = previewData.map(item => ({
+          name: item.name,
+          value: item[config.yAxis[0]] || 0
+        }))
+        return (
+          <div className="h-48 bg-white dark:bg-gray-800 rounded-lg p-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsPieChart>
+                <Tooltip formatter={formatTooltipValue} />
+                {config.showLegend && <Legend />}
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={60}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={config.colors[index % config.colors.length]}
+                    />
+                  ))}
+                </Pie>
+              </RechartsPieChart>
+            </ResponsiveContainer>
+          </div>
+        )
+
+      default:
+        return null
+    }
   }
 
   if (!isOpen) return null
@@ -454,21 +659,8 @@ export default function ChartConfigModal({ isOpen, onClose, onSave, currentChart
             </h3>
             
             <div className="space-y-4">
-              {/* Chart Preview */}
-              <div className="h-48 bg-white dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
-                <div className="text-center">
-                  {config.type === 'bar' && <BarChart3 className="w-16 h-16 text-blue-500 mx-auto mb-2" />}
-                  {config.type === 'line' && <LineIcon className="w-16 h-16 text-blue-500 mx-auto mb-2" />}
-                  {config.type === 'pie' && <PieChart className="w-16 h-16 text-blue-500 mx-auto mb-2" />}
-                  
-                  <h4 className="font-semibold text-gray-700 dark:text-gray-300">
-                    {config.title}
-                  </h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {config.type.charAt(0).toUpperCase() + config.type.slice(1)} Chart Preview
-                  </p>
-                </div>
-              </div>
+              {/* Live Chart Preview */}
+              {renderLivePreview()}
 
               {/* Configuration Summary */}
               <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">

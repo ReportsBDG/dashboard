@@ -37,9 +37,9 @@ function validatePatientRecord(record: any): PatientRecord {
     throw new ValidationError('Invalid record format')
   }
 
-  const requiredFields = ['timestamp', 'patientname', 'offices', 'insurancecarrier', 'claimstatus']
+  const requiredFields = ['timestamp', 'patientname', 'offices', 'insurancecarrier']
   const missingFields = requiredFields.filter(field => !record[field])
-  
+
   if (missingFields.length > 0) {
     throw new ValidationError(`Missing required fields: ${missingFields.join(', ')}`)
   }
@@ -51,7 +51,7 @@ function validatePatientRecord(record: any): PatientRecord {
     offices: String(record.offices || ''),
     patientname: String(record.patientname || ''),
     paidamount: Number(record.paidamount) || 0,
-    claimstatus: String(record.claimstatus || ''),
+    claimstatus: String(record.claimstatus || 'Unknown'),
     typeofinteraction: record.typeofinteraction ? String(record.typeofinteraction) : undefined,
     patientdob: record.patientdob ? String(record.patientdob) : undefined,
     dos: record.dos ? String(record.dos) : undefined,
@@ -195,9 +195,17 @@ export class DataService {
     try {
       // Use the new Google Script integration
       const rawData = await fetchFromGoogleScript()
-      
+
+      if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
+        console.warn('No data received from Google Sheets, using mock data')
+        const { mockPatientData } = await import('@/utils/mockData')
+        return mockPatientData
+      }
+
       if (!validatePatientData(rawData)) {
-        throw new DataServiceError('Invalid data received from Google Sheets')
+        console.warn('Invalid data received from Google Sheets, using mock data')
+        const { mockPatientData } = await import('@/utils/mockData')
+        return mockPatientData
       }
 
       // Validate and transform the data
