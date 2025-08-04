@@ -659,21 +659,8 @@ export default function ChartConfigModal({ isOpen, onClose, onSave, currentChart
             </h3>
             
             <div className="space-y-4">
-              {/* Chart Preview */}
-              <div className="h-48 bg-white dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
-                <div className="text-center">
-                  {config.type === 'bar' && <BarChart3 className="w-16 h-16 text-blue-500 mx-auto mb-2" />}
-                  {config.type === 'line' && <LineIcon className="w-16 h-16 text-blue-500 mx-auto mb-2" />}
-                  {config.type === 'pie' && <PieChart className="w-16 h-16 text-blue-500 mx-auto mb-2" />}
-                  
-                  <h4 className="font-semibold text-gray-700 dark:text-gray-300">
-                    {config.title}
-                  </h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {config.type.charAt(0).toUpperCase() + config.type.slice(1)} Chart Preview
-                  </p>
-                </div>
-              </div>
+              {/* Live Chart Preview */}
+              {renderLivePreview()}
 
               {/* Configuration Summary */}
               <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
