@@ -1050,10 +1050,61 @@ export default function DentalDashboard() {
               placeholder="All Interaction Types"
             />
 
-              {/* Filter Summary */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                <h3 className="font-medium text-gray-900 dark:text-white mb-2 text-sm">Summary</h3>
-                <div className="space-y-1">
+              {/* Active Filters Summary */}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm">Active Filters</h3>
+                {(selectedOffices.length > 0 || selectedCarriers.length > 0 || selectedClaimStatuses.length > 0 ||
+                  selectedStatuses.length > 0 || selectedInteractionTypes.length > 0 || searchTerm ||
+                  dateRange.start || dateRange.end) && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-xs text-red-600 dark:text-red-400 hover:underline"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                {selectedOffices.length > 0 && (
+                  <div className="text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Offices:</span>
+                    <span className="font-medium text-blue-600 ml-1">{selectedOffices.length} selected</span>
+                  </div>
+                )}
+                {selectedCarriers.length > 0 && (
+                  <div className="text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Carriers:</span>
+                    <span className="font-medium text-blue-600 ml-1">{selectedCarriers.length} selected</span>
+                  </div>
+                )}
+                {selectedClaimStatuses.length > 0 && (
+                  <div className="text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Claim Status:</span>
+                    <span className="font-medium text-blue-600 ml-1">{selectedClaimStatuses.length} selected</span>
+                  </div>
+                )}
+                {selectedStatuses.length > 0 && (
+                  <div className="text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Processing:</span>
+                    <span className="font-medium text-blue-600 ml-1">{selectedStatuses.length} selected</span>
+                  </div>
+                )}
+                {selectedInteractionTypes.length > 0 && (
+                  <div className="text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Interaction:</span>
+                    <span className="font-medium text-blue-600 ml-1">{selectedInteractionTypes.length} selected</span>
+                  </div>
+                )}
+                {searchTerm && (
+                  <div className="text-xs">
+                    <span className="text-gray-600 dark:text-gray-400">Search:</span>
+                    <span className="font-medium text-blue-600 ml-1">"{searchTerm}"</span>
+                  </div>
+                )}
+
+                <div className="border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-600 dark:text-gray-400">Total Records</span>
                     <span className="font-medium text-blue-600">{data.length}</span>
@@ -1062,20 +1113,9 @@ export default function DentalDashboard() {
                     <span className="text-gray-600 dark:text-gray-400">Filtered Records</span>
                     <span className="font-medium text-green-600">{filteredData.length}</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-600 dark:text-gray-400">Complete Claims</span>
-                    <span className="font-medium text-green-600">{claimsProcessed}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-600 dark:text-gray-400">Today's Claims</span>
-                    <span className="font-medium text-pink-600">{todaysClaims}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-600 dark:text-gray-400">Monthly Claims</span>
-                    <span className="font-medium text-purple-600">{monthlyClaims}</span>
-                  </div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
