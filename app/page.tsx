@@ -372,11 +372,11 @@ export default function DentalDashboard() {
         kpiCardsElement: kpiCards as HTMLElement,
         filters: {
           search: searchTerm,
-          office: selectedOffice,
-          status: selectedStatus,
-          claimStatus: selectedClaimStatus,
-          carrier: selectedCarrier,
-          interactionType: selectedInteractionType,
+          offices: selectedOffices,
+          statuses: selectedStatuses,
+          claimStatuses: selectedClaimStatuses,
+          carriers: selectedCarriers,
+          interactionTypes: selectedInteractionTypes,
           dateRange
         },
         selectedColumns,
