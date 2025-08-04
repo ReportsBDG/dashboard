@@ -625,6 +625,32 @@ export class ExportService {
   }
 
   /**
+   * Format currency for PDF
+   */
+  private formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+    }).format(amount)
+  }
+
+  /**
+   * Format date for PDF
+   */
+  private formatDate(dateString: string): string {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    } catch {
+      return dateString
+    }
+  }
+
+  /**
    * Get human-readable column label
    */
   private getColumnLabel(column: string): string {
