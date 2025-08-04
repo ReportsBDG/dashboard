@@ -138,16 +138,16 @@ export default function DentalDashboard() {
     savePersistedState('dentalDashboard.selectedColumns', selectedColumns)
   }, [selectedColumns])
 
-  // Add notification function
+  // Add notification function with unique ID generation
   const addNotification = (type: Notification['type'], message: string) => {
     const notification: Notification = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
       message,
       timestamp: new Date()
     }
     setNotifications(prev => [notification, ...prev].slice(0, 5))
-    
+
     // Auto-remove after 5 seconds
     setTimeout(() => {
       setNotifications(prev => prev.filter(n => n.id !== notification.id))
