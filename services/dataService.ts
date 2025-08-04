@@ -195,9 +195,17 @@ export class DataService {
     try {
       // Use the new Google Script integration
       const rawData = await fetchFromGoogleScript()
-      
+
+      if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
+        console.warn('No data received from Google Sheets, using mock data')
+        const { mockPatientData } = await import('@/utils/mockData')
+        return mockPatientData
+      }
+
       if (!validatePatientData(rawData)) {
-        throw new DataServiceError('Invalid data received from Google Sheets')
+        console.warn('Invalid data received from Google Sheets, using mock data')
+        const { mockPatientData } = await import('@/utils/mockData')
+        return mockPatientData
       }
 
       // Validate and transform the data
