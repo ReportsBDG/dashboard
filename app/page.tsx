@@ -1052,7 +1052,11 @@ export default function DentalDashboard() {
                     <Download className="w-4 h-4" />
                     <span>PDF</span>
                   </button>
-                  <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-green-700 text-sm">
+                  <button
+                    onClick={handleExcelExport}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-green-700 text-sm"
+                    title={`Export All ${filteredData.length} Records to Excel`}
+                  >
                     <Download className="w-4 h-4" />
                     <span>Excel</span>
                   </button>
