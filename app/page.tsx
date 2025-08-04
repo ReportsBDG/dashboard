@@ -562,30 +562,39 @@ export default function DentalDashboard() {
       </header>
 
       <div className="flex">
+        {/* Floating Toggle Button - Always Visible */}
+        <button
+          onClick={toggleFilters}
+          className={`fixed top-1/2 z-50 transform -translate-y-1/2 transition-all duration-300 ease-in-out ${
+            isFiltersCollapsed ? 'left-4' : 'left-72'
+          } bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-gray-800 hover:scale-110`}
+          title={isFiltersCollapsed ? 'Mostrar Filtros' : 'Ocultar Filtros'}
+        >
+          {isFiltersCollapsed ? (
+            <ChevronRight className="w-5 h-5" />
+          ) : (
+            <ChevronLeft className="w-5 h-5" />
+          )}
+        </button>
+
         {/* Collapsible Sidebar Filters */}
-        <div 
+        <div
           className={`bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto transition-all duration-300 ease-in-out ${
             isFiltersCollapsed ? 'w-16' : 'w-80'
           }`}
         >
-          {/* Toggle Button */}
+          {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center">
               <div className={`flex items-center space-x-2 transition-opacity duration-300 ${isFiltersCollapsed ? 'opacity-0' : 'opacity-100'}`}>
                 <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters & Search</h2>
               </div>
-              <button
-                onClick={toggleFilters}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                title={isFiltersCollapsed ? 'Expand Filters' : 'Collapse Filters'}
-              >
-                {isFiltersCollapsed ? (
-                  <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                ) : (
-                  <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                )}
-              </button>
+              {isFiltersCollapsed && (
+                <div className="opacity-60">
+                  <Filter className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                </div>
+              )}
             </div>
           </div>
 
