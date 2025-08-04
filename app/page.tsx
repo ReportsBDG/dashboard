@@ -954,6 +954,23 @@ export default function DentalDashboard() {
                 </select>
               </div>
 
+              {/* Type of Interaction Filter */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Type of Interaction
+                </label>
+                <select
+                  value={selectedInteractionType}
+                  onChange={(e) => setSelectedInteractionType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">All Interaction Types</option>
+                  {uniqueInteractionTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
               {/* Filter Summary */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                 <h3 className="font-medium text-gray-900 dark:text-white mb-2 text-sm">Summary</h3>
@@ -1093,7 +1110,7 @@ export default function DentalDashboard() {
                         >
                           Carrier
                           {sortBy === 'insurancecarrier' && (
-                            <span className="ml-1">{sortDirection === 'asc' ? '���' : '↓'}</span>
+                            <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                           )}
                         </th>
                       )}
@@ -1115,7 +1132,7 @@ export default function DentalDashboard() {
                         >
                           DOS
                           {sortBy === 'dos' && (
-                            <span className="ml-1">{sortDirection === 'asc' ? '↑' : '��'}</span>
+                            <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                           )}
                         </th>
                       )}
