@@ -1261,11 +1261,18 @@ export default function DentalDashboard() {
         </div>
       </div>
 
-      {/* Click outside to close column filter */}
+      {/* Click outside to close dropdowns */}
       {showColumnFilter && (
-        <div 
+        <div
           className="fixed inset-0 z-40"
           onClick={() => setShowColumnFilter(false)}
+        ></div>
+      )}
+
+      {showNotificationsPanel && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowNotificationsPanel(false)}
         ></div>
       )}
     </div>
