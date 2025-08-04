@@ -4,7 +4,7 @@ export const GOOGLE_SCRIPT_CONFIG = {
   timeout: 10000,
   retries: 3,
   useProxy: true,
-  useFallbackData: true // Activado temporalmente para evitar errores
+  useFallbackData: false // Desactivado para usar datos reales de Google Sheets
 }
 
 // Tipos de respuesta esperados
@@ -208,7 +208,7 @@ export async function fetchFromGoogleScript(): Promise<any[]> {
       
       // Si obtenemos menos de 248 registros, complementar con datos generados
       if (processedData.length < 248) {
-        console.log(`⚠️ Solo se obtuvieron ${processedData.length} registros, complementando con datos generados...`)
+        console.log(`��️ Solo se obtuvieron ${processedData.length} registros, complementando con datos generados...`)
         const missingCount = 248 - processedData.length
         const additionalData = generateAdditionalData(missingCount, processedData.length + 1)
         const combinedData = [...processedData, ...additionalData]
