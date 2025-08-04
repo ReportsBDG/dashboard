@@ -365,7 +365,7 @@ export default function SimpleCharts({ data }: ChartProps) {
                 }}
               />
               {chart.showLegend && <Legend />}
-              <RechartsPieChart.Pie
+              <Pie
                 data={pieData}
                 cx="50%"
                 cy="50%"
@@ -375,12 +375,12 @@ export default function SimpleCharts({ data }: ChartProps) {
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
                 {pieData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={chart.colors[index % chart.colors.length]} 
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={chart.colors[index % chart.colors.length]}
                   />
                 ))}
-              </RechartsPieChart.Pie>
+              </Pie>
             </RechartsPieChart>
           </ResponsiveContainer>
         )
