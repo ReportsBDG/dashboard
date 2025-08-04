@@ -798,7 +798,9 @@ export default function DentalDashboard() {
           isFiltersCollapsed ? 'p-6 ml-0' : 'p-6'
         }`}>
           {/* Interactive Charts Section */}
-          <SimpleCharts data={filteredData} />
+          <div id="charts-section">
+            <SimpleCharts data={filteredData} />
+          </div>
 
           {/* Enhanced Patient Records Table */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
