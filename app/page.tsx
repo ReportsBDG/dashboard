@@ -284,13 +284,56 @@ export default function DentalDashboard() {
   const uniqueClaimStatuses = Array.from(new Set(data.map(item => item.claimstatus).filter(Boolean)))
   const uniqueCarriers = Array.from(new Set(data.map(item => item.insurancecarrier).filter(Boolean)))
 
-  // PDF Export functionality
-  const handlePDFExport = async () => {
+  // Complete Dashboard PDF Export functionality
+  const handleCompleteDashboardPDFExport = async () => {
     try {
-      addNotification('info', 'Preparing PDF export...')
+      addNotification('info', 'Preparing complete dashboard PDF export...')
+
+      // Capture all visual elements
+      const chartElements = document.querySelectorAll('.recharts-wrapper')
+      const kpiCards = document.querySelector('[data-loc*="grid-cols-2 lg:grid-cols-5"]')
+
+      // Prepare comprehensive data
+      const dashboardMetrics = {
+        totalRevenue,
+        claimsProcessed,
+        activeOffices,
+        todaysClaims,
+        monthlyClaims
+      }
+
+      await exportService.exportCompleteDashboardToPDF({
+        data: filteredData,
+        allData: data,
+        metrics: dashboardMetrics,
+        chartElements: Array.from(chartElements) as HTMLElement[],
+        kpiCardsElement: kpiCards as HTMLElement,
+        filters: {
+          search: searchTerm,
+          office: selectedOffice,
+          status: selectedStatus,
+          claimStatus: selectedClaimStatus,
+          carrier: selectedCarrier,
+          dateRange
+        },
+        selectedColumns,
+        title: 'Complete Dental Analytics Dashboard Report'
+      })
+
+      addNotification('success', 'Complete dashboard PDF exported successfully')
+    } catch (error) {
+      addNotification('error', 'Failed to export complete dashboard PDF')
+      console.error('Complete dashboard PDF export error:', error)
+    }
+  }
+
+  // Simple PDF Export functionality for Patient Records table
+  const handlePatientRecordsPDFExport = async () => {
+    try {
+      addNotification('info', 'Preparing patient records PDF export...')
       await exportService.exportToPDF(filteredData, {
-        title: 'Dental Analytics Report',
-        includeCharts: true,
+        title: 'Patient Records Report',
+        includeCharts: false,
         filters: {
           search: searchTerm,
           office: selectedOffice,
@@ -300,10 +343,10 @@ export default function DentalDashboard() {
           dateRange
         }
       })
-      addNotification('success', 'PDF exported successfully')
+      addNotification('success', 'Patient records PDF exported successfully')
     } catch (error) {
-      addNotification('error', 'Failed to export PDF')
-      console.error('PDF export error:', error)
+      addNotification('error', 'Failed to export patient records PDF')
+      console.error('Patient records PDF export error:', error)
     }
   }
 
