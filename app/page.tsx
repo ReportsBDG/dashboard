@@ -561,28 +561,27 @@ export default function DentalDashboard() {
         </div>
       </header>
 
-      <div className="flex">
-        {/* Floating Toggle Button - Always Visible */}
-        <button
-          onClick={toggleFilters}
-          className={`fixed top-1/2 z-50 transform -translate-y-1/2 transition-all duration-300 ease-in-out ${
-            isFiltersCollapsed ? 'left-4' : 'left-72'
-          } bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-gray-800 hover:scale-110`}
-          title={isFiltersCollapsed ? 'Mostrar Filtros' : 'Ocultar Filtros'}
-        >
-          {isFiltersCollapsed ? (
-            <ChevronRight className="w-5 h-5" />
-          ) : (
-            <ChevronLeft className="w-5 h-5" />
-          )}
-        </button>
-
+      <div className="flex relative">
         {/* Collapsible Sidebar Filters */}
         <div
-          className={`bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto transition-all duration-300 ease-in-out ${
+          className={`bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto transition-all duration-300 ease-in-out relative ${
             isFiltersCollapsed ? 'w-16' : 'w-80'
           }`}
         >
+          {/* Floating Toggle Button - Positioned relative to sidebar */}
+          <button
+            onClick={toggleFilters}
+            className={`absolute top-20 z-50 transform transition-all duration-300 ease-in-out ${
+              isFiltersCollapsed ? '-right-4' : '-right-4'
+            } bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-gray-800 hover:scale-110`}
+            title={isFiltersCollapsed ? 'Mostrar Filtros' : 'Ocultar Filtros'}
+          >
+            {isFiltersCollapsed ? (
+              <ChevronRight className="w-5 h-5" />
+            ) : (
+              <ChevronLeft className="w-5 h-5" />
+            )}
+          </button>
           {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-center">
