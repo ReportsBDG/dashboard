@@ -376,6 +376,7 @@ export default function DentalDashboard() {
           status: selectedStatus,
           claimStatus: selectedClaimStatus,
           carrier: selectedCarrier,
+          interactionType: selectedInteractionType,
           dateRange
         },
         selectedColumns,
