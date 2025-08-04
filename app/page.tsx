@@ -103,7 +103,15 @@ export default function DentalDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notifications, setNotifications] = useState<Notification[]>([])
-  
+  const [showNotificationsPanel, setShowNotificationsPanel] = useState(false)
+  const [recentChanges, setRecentChanges] = useState<Array<{
+    id: string
+    type: 'new_record' | 'updated_record' | 'deleted_record' | 'data_sync'
+    message: string
+    timestamp: Date
+    details?: string
+  }>>([])
+
   // New states for enhanced functionality
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(() => 
     loadPersistedState('dentalDashboard.filtersCollapsed', false)
