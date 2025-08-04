@@ -51,7 +51,7 @@ function validatePatientRecord(record: any): PatientRecord {
     offices: String(record.offices || ''),
     patientname: String(record.patientname || ''),
     paidamount: Number(record.paidamount) || 0,
-    claimstatus: String(record.claimstatus || ''),
+    claimstatus: String(record.claimstatus || 'Unknown'),
     typeofinteraction: record.typeofinteraction ? String(record.typeofinteraction) : undefined,
     patientdob: record.patientdob ? String(record.patientdob) : undefined,
     dos: record.dos ? String(record.dos) : undefined,
