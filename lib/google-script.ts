@@ -4,7 +4,7 @@ export const GOOGLE_SCRIPT_CONFIG = {
   timeout: 10000,
   retries: 3,
   useProxy: true,
-  useFallbackData: false // Desactivado para forzar conexión real
+  useFallbackData: true // Activado temporalmente para evitar errores
 }
 
 // Tipos de respuesta esperados
@@ -293,4 +293,4 @@ function processData(data: any[]): any[] {
 export function validatePatientData(data: any[]): boolean {
   return Array.isArray(data) && data.length > 0 && 
          data.every(item => item.patientname && item.offices)
-} 
+}
