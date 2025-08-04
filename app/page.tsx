@@ -341,6 +341,7 @@ export default function DentalDashboard() {
   const uniqueStatuses = Array.from(new Set(data.map(item => item.status).filter(Boolean)))
   const uniqueClaimStatuses = Array.from(new Set(data.map(item => item.claimstatus).filter(Boolean)))
   const uniqueCarriers = Array.from(new Set(data.map(item => item.insurancecarrier).filter(Boolean)))
+  const uniqueInteractionTypes = Array.from(new Set(data.map(item => item.typeofinteraction).filter(Boolean)))
 
   // Complete Dashboard PDF Export functionality - TODOS LOS REGISTROS
   const handleCompleteDashboardPDFExport = async () => {
