@@ -4,7 +4,7 @@ export const GOOGLE_SCRIPT_CONFIG = {
   timeout: 10000,
   retries: 3,
   useProxy: true,
-  useFallbackData: false // Desactivado para usar datos reales de Google Sheets
+  useFallbackData: true // Activado temporalmente hasta configurar conexión real
 }
 
 // Tipos de respuesta esperados
