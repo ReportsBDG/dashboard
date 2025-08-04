@@ -169,44 +169,74 @@ export class ExportService {
         }
       }
 
-      // Patient Records Table
-      if (currentY > pageHeight - 100) {
-        pdf.addPage()
-        currentY = margin
-      }
+      // Patient Records Table - TODOS LOS REGISTROS
+      pdf.addPage() // Nueva página dedicada para la tabla
+      currentY = margin
 
-      pdf.setFontSize(16)
+      pdf.setFontSize(18)
       pdf.setFont('helvetica', 'bold')
-      pdf.text('Patient Records', margin, currentY)
-      currentY += 10
+      pdf.text(`Complete Patient Records (${options.data.length} total)`, margin, currentY)
+      currentY += 15
 
-      // Table headers
-      const tableColumns = ['Patient', 'Office', 'Carrier', 'DOS', 'Status', 'Amount']
-      const colWidth = (pageWidth - 2 * margin) / tableColumns.length
+      // Table headers mejorados
+      const tableColumns = ['Patient Name', 'Office', 'Carrier', 'DOS', 'Claim Status', 'Comments', 'Email', 'Amount', 'Status']
+      const colWidths = [35, 25, 30, 22, 25, 35, 40, 25, 25] // Anchos específicos para cada columna
+      const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0)
 
-      pdf.setFontSize(10)
+      pdf.setFontSize(9)
       pdf.setFont('helvetica', 'bold')
 
-      // Header background
-      pdf.setFillColor(249, 250, 251)
-      pdf.rect(margin, currentY, pageWidth - 2 * margin, 8, 'F')
+      // Header background mejorado
+      pdf.setFillColor(59, 130, 246) // Azul
+      pdf.rect(margin, currentY, totalTableWidth, 10, 'F')
 
+      // Headers en blanco
+      pdf.setTextColor(255, 255, 255)
+      let xPos = margin
       tableColumns.forEach((header, index) => {
-        pdf.text(header, margin + (index * colWidth) + 2, currentY + 5)
+        pdf.text(header, xPos + 2, currentY + 7)
+        xPos += colWidths[index]
       })
-      currentY += 10
+      currentY += 12
 
-      // Table data
+      // Reset color for data
+      pdf.setTextColor(0, 0, 0)
+
+      // Table data - TODOS LOS REGISTROS SIN LÍMITE
       pdf.setFont('helvetica', 'normal')
-      pdf.setFontSize(8)
+      pdf.setFontSize(7)
 
-      const maxRows = Math.floor((pageHeight - currentY - margin) / 8)
-      const displayData = options.data.slice(0, maxRows)
+      const rowHeight = 8
+      let pageRecordCount = 0
+      const maxRowsPerPage = Math.floor((pageHeight - currentY - 20) / rowHeight)
 
-      displayData.forEach((record, rowIndex) => {
+      options.data.forEach((record, rowIndex) => {
+        // Nueva página si es necesario
+        if (pageRecordCount >= maxRowsPerPage) {
+          pdf.addPage()
+          currentY = margin
+          pageRecordCount = 0
+
+          // Repetir headers en nueva página
+          pdf.setFillColor(59, 130, 246)
+          pdf.rect(margin, currentY, totalTableWidth, 10, 'F')
+          pdf.setTextColor(255, 255, 255)
+          pdf.setFont('helvetica', 'bold')
+
+          xPos = margin
+          tableColumns.forEach((header, index) => {
+            pdf.text(header, xPos + 2, currentY + 7)
+            xPos += colWidths[index]
+          })
+          currentY += 12
+          pdf.setTextColor(0, 0, 0)
+          pdf.setFont('helvetica', 'normal')
+        }
+
+        // Filas alternas
         if (rowIndex % 2 === 0) {
           pdf.setFillColor(248, 250, 252)
-          pdf.rect(margin, currentY, pageWidth - 2 * margin, 8, 'F')
+          pdf.rect(margin, currentY, totalTableWidth, rowHeight, 'F')
         }
 
         const rowData = [
@@ -215,23 +245,30 @@ export class ExportService {
           record.insurancecarrier || 'N/A',
           record.dos ? this.formatDate(record.dos) : 'N/A',
           record.claimstatus || 'N/A',
-          this.formatCurrency(record.paidamount || 0)
+          (record.commentsreasons || 'N/A').substring(0, 25) + (record.commentsreasons && record.commentsreasons.length > 25 ? '...' : ''),
+          record.emailaddress || 'N/A',
+          this.formatCurrency(record.paidamount || 0),
+          record.status || 'N/A'
         ]
 
+        xPos = margin
         rowData.forEach((data, colIndex) => {
           const text = data.toString()
-          const truncated = text.length > 20 ? text.substring(0, 17) + '...' : text
-          pdf.text(truncated, margin + (colIndex * colWidth) + 2, currentY + 5)
+          const maxLength = colWidths[colIndex] / 3 // Aproximación para caracteres
+          const truncated = text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text
+          pdf.text(truncated, xPos + 2, currentY + 5)
+          xPos += colWidths[colIndex]
         })
-        currentY += 8
+
+        currentY += rowHeight
+        pageRecordCount++
       })
 
-      // Footer with additional info
-      if (options.data.length > maxRows) {
-        currentY += 5
-        pdf.setFont('helvetica', 'italic')
-        pdf.text(`... and ${options.data.length - maxRows} more records`, margin, currentY)
-      }
+      // Footer con estadísticas
+      currentY += 10
+      pdf.setFont('helvetica', 'italic')
+      pdf.setFontSize(9)
+      pdf.text(`Total de ${options.data.length} registros de pacientes mostrados completamente`, margin, currentY)
 
       // Add page numbers
       const pageCount = pdf.getNumberOfPages()
