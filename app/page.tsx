@@ -500,6 +500,25 @@ export default function DentalDashboard() {
     setIsFiltersCollapsed(!isFiltersCollapsed)
   }
 
+  // Multi-select helper functions
+  const toggleFilterSelection = (value: string, currentSelection: string[], setSelection: (selection: string[]) => void) => {
+    if (currentSelection.includes(value)) {
+      setSelection(currentSelection.filter(item => item !== value))
+    } else {
+      setSelection([...currentSelection, value])
+    }
+  }
+
+  const clearAllFilters = () => {
+    setSelectedOffices([])
+    setSelectedStatuses([])
+    setSelectedClaimStatuses([])
+    setSelectedCarriers([])
+    setSelectedInteractionTypes([])
+    setDateRange({ start: '', end: '' })
+    setSearchTerm('')
+  }
+
   // Show loading state
   if (loading) {
     return (
