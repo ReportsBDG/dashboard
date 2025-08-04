@@ -435,6 +435,15 @@ export default function DentalDashboard() {
           {/* Top Row */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
+              {/* Hamburger Menu Button */}
+              <button
+                onClick={toggleFilters}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600"
+                title={isFiltersCollapsed ? 'Mostrar Filtros' : 'Ocultar Filtros'}
+              >
+                <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </button>
+
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Activity className="w-6 h-6 text-white" />
               </div>
