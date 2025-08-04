@@ -183,13 +183,18 @@ export async function fetchFromGoogleScript(): Promise<any[]> {
       
       console.log(`Intento ${attempt}: Conectando a Google Sheets...`)
       
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), timeout)
+
       const response = await fetch(fetchUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(timeout)
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`)
