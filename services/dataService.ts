@@ -37,9 +37,9 @@ function validatePatientRecord(record: any): PatientRecord {
     throw new ValidationError('Invalid record format')
   }
 
-  const requiredFields = ['timestamp', 'patientname', 'offices', 'insurancecarrier', 'claimstatus']
+  const requiredFields = ['timestamp', 'patientname', 'offices', 'insurancecarrier']
   const missingFields = requiredFields.filter(field => !record[field])
-  
+
   if (missingFields.length > 0) {
     throw new ValidationError(`Missing required fields: ${missingFields.join(', ')}`)
   }
