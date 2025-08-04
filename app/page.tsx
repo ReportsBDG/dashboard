@@ -746,7 +746,9 @@ export default function DentalDashboard() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6 space-y-6">
+        <div className={`flex-1 space-y-6 transition-all duration-300 ease-in-out ${
+          isFiltersCollapsed ? 'p-6 ml-0' : 'p-6'
+        }`}>
           {/* Interactive Charts Section */}
           <SimpleCharts data={filteredData} />
 
