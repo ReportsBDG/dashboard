@@ -562,26 +562,33 @@ export default function DentalDashboard() {
       </header>
 
       <div className="flex relative">
+        {/* Floating Toggle Button for Collapsed State */}
+        {isFiltersCollapsed && (
+          <button
+            onClick={toggleFilters}
+            className="fixed top-20 left-4 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-gray-800 hover:scale-110 transition-all duration-300 ease-in-out"
+            title="Mostrar Filtros"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
+
         {/* Collapsible Sidebar Filters */}
         <div
           className={`bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 h-screen overflow-y-auto transition-all duration-300 ease-in-out relative ${
             isFiltersCollapsed ? 'w-0 opacity-0' : 'w-80'
           }`}
         >
-          {/* Floating Toggle Button - Positioned relative to sidebar */}
-          <button
-            onClick={toggleFilters}
-            className={`absolute top-20 z-50 transform transition-all duration-300 ease-in-out ${
-              isFiltersCollapsed ? '-right-4' : '-right-4'
-            } bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-gray-800 hover:scale-110`}
-            title={isFiltersCollapsed ? 'Mostrar Filtros' : 'Ocultar Filtros'}
-          >
-            {isFiltersCollapsed ? (
-              <ChevronRight className="w-5 h-5" />
-            ) : (
+          {/* Toggle Button Inside Sidebar */}
+          {!isFiltersCollapsed && (
+            <button
+              onClick={toggleFilters}
+              className="absolute top-20 -right-4 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg hover:shadow-xl border-2 border-white dark:border-gray-800 hover:scale-110 transition-all duration-300 ease-in-out"
+              title="Ocultar Filtros"
+            >
               <ChevronLeft className="w-5 h-5" />
-            )}
-          </button>
+            </button>
+          )}
           {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-center">
