@@ -97,6 +97,7 @@ export default function DentalDashboard() {
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [selectedClaimStatus, setSelectedClaimStatus] = useState('all')
   const [selectedCarrier, setSelectedCarrier] = useState('all')
+  const [selectedInteractionType, setSelectedInteractionType] = useState('all')
   const [dateRange, setDateRange] = useState({ start: '', end: '' })
   const [isClient, setIsClient] = useState(false)
   const [data, setData] = useState<PatientRecord[]>([])
