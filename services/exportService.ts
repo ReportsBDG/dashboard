@@ -76,7 +76,7 @@ export class ExportService {
       // Header
       pdf.setFontSize(20)
       pdf.setFont('helvetica', 'bold')
-      pdf.text('Dental Analytics Report', pageWidth / 2, currentY, { align: 'center' })
+      pdf.text(options.title || 'Dental Analytics Report', pageWidth / 2, currentY, { align: 'center' })
       currentY += 15
 
       // Report metadata
