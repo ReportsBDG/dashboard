@@ -1009,90 +1009,46 @@ export default function DentalDashboard() {
                 </div>
               </div>
 
-              {/* Office Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Office
-                </label>
-                <select
-                  value={selectedOffice}
-                  onChange={(e) => setSelectedOffice(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="all">All Offices</option>
-                  {uniqueOffices.map(office => (
-                    <option key={office} value={office}>{office}</option>
-                  ))}
-                </select>
-              </div>
+              {/* Multi-Select Filters */}
+            <MultiSelectFilter
+              label="Office"
+              options={uniqueOffices}
+              selectedValues={selectedOffices}
+              onToggle={(value) => toggleFilterSelection(value, selectedOffices, setSelectedOffices)}
+              placeholder="All Offices"
+            />
 
-              {/* Insurance Carrier Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Insurance Carrier
-                </label>
-                <select
-                  value={selectedCarrier}
-                  onChange={(e) => setSelectedCarrier(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="all">All Carriers</option>
-                  {uniqueCarriers.map(carrier => (
-                    <option key={carrier} value={carrier}>{carrier}</option>
-                  ))}
-                </select>
-              </div>
+            <MultiSelectFilter
+              label="Insurance Carrier"
+              options={uniqueCarriers}
+              selectedValues={selectedCarriers}
+              onToggle={(value) => toggleFilterSelection(value, selectedCarriers, setSelectedCarriers)}
+              placeholder="All Carriers"
+            />
 
-              {/* Claim Status Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Claim Status
-                </label>
-                <select
-                  value={selectedClaimStatus}
-                  onChange={(e) => setSelectedClaimStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="all">All Claim Statuses</option>
-                  {uniqueClaimStatuses.map(status => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
-                </select>
-              </div>
+            <MultiSelectFilter
+              label="Claim Status"
+              options={uniqueClaimStatuses}
+              selectedValues={selectedClaimStatuses}
+              onToggle={(value) => toggleFilterSelection(value, selectedClaimStatuses, setSelectedClaimStatuses)}
+              placeholder="All Claim Statuses"
+            />
 
-              {/* Status Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Processing Status
-                </label>
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="all">All Statuses</option>
-                  {uniqueStatuses.map(status => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
-                </select>
-              </div>
+            <MultiSelectFilter
+              label="Processing Status"
+              options={uniqueStatuses}
+              selectedValues={selectedStatuses}
+              onToggle={(value) => toggleFilterSelection(value, selectedStatuses, setSelectedStatuses)}
+              placeholder="All Statuses"
+            />
 
-              {/* Type of Interaction Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Type of Interaction
-                </label>
-                <select
-                  value={selectedInteractionType}
-                  onChange={(e) => setSelectedInteractionType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="all">All Interaction Types</option>
-                  {uniqueInteractionTypes.map(type => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
+            <MultiSelectFilter
+              label="Type of Interaction"
+              options={uniqueInteractionTypes}
+              selectedValues={selectedInteractionTypes}
+              onToggle={(value) => toggleFilterSelection(value, selectedInteractionTypes, setSelectedInteractionTypes)}
+              placeholder="All Interaction Types"
+            />
 
               {/* Filter Summary */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
