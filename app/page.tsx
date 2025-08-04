@@ -386,12 +386,12 @@ export default function DentalDashboard() {
     }
   }
 
-  // Simple PDF Export functionality for Patient Records table
+  // Simple PDF Export functionality for Patient Records table - TODOS LOS REGISTROS
   const handlePatientRecordsPDFExport = async () => {
     try {
-      addNotification('info', 'Preparing patient records PDF export...')
-      await exportService.exportToPDF(filteredData, {
-        title: 'Patient Records Report',
+      addNotification('info', `Preparing patient records PDF export with ${filteredData.length} records...`)
+      await exportService.exportToPDF(filteredData, { // TODOS los datos filtrados
+        title: `Patient Records Report (${filteredData.length} records)`,
         includeCharts: false,
         filters: {
           search: searchTerm,
@@ -402,10 +402,43 @@ export default function DentalDashboard() {
           dateRange
         }
       })
-      addNotification('success', 'Patient records PDF exported successfully')
+      addNotification('success', `Patient records PDF exported with ${filteredData.length} records`)
+      addRecentChange('data_sync', 'Patient records exported to PDF',
+        `${filteredData.length} records included`)
     } catch (error) {
       addNotification('error', 'Failed to export patient records PDF')
       console.error('Patient records PDF export error:', error)
+    }
+  }
+
+  // Excel Export functionality - TODOS LOS REGISTROS
+  const handleExcelExport = async () => {
+    try {
+      addNotification('info', `Preparing Excel export with ${filteredData.length} records...`)
+
+      const dashboardMetrics = {
+        totalRevenue,
+        claimsProcessed,
+        activeOffices,
+        todaysClaims,
+        monthlyClaims,
+        averageClaim: filteredData.length > 0 ? totalRevenue / filteredData.length : 0,
+        weeklyClaims: 0 // You can implement this if needed
+      }
+
+      await exportService.exportToExcel(filteredData, { // TODOS los datos filtrados
+        format: 'excel',
+        includeCharts: false,
+        dateRange,
+        selectedColumns: Object.keys(selectedColumns).filter(key => selectedColumns[key as keyof typeof selectedColumns])
+      }, dashboardMetrics)
+
+      addNotification('success', `Excel file exported with ${filteredData.length} records`)
+      addRecentChange('data_sync', 'Data exported to Excel',
+        `${filteredData.length} records included`)
+    } catch (error) {
+      addNotification('error', 'Failed to export Excel file')
+      console.error('Excel export error:', error)
     }
   }
 
