@@ -401,11 +401,11 @@ export default function DentalDashboard() {
         includeCharts: false,
         filters: {
           search: searchTerm,
-          office: selectedOffice,
-          status: selectedStatus,
-          claimStatus: selectedClaimStatus,
-          carrier: selectedCarrier,
-          interactionType: selectedInteractionType,
+          offices: selectedOffices,
+          statuses: selectedStatuses,
+          claimStatuses: selectedClaimStatuses,
+          carriers: selectedCarriers,
+          interactionTypes: selectedInteractionTypes,
           dateRange
         }
       })
